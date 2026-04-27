@@ -375,6 +375,38 @@
         </div>
     </div>
 
+
+
+
+    <div id="admin-kyc-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="width: 95%; max-width: 400px; border-top: 4px solid #e53e3e;">
+            <i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('admin-kyc-modal').classList.add('hidden')"></i>
+            <h3 class="text-blue mb-20"><i class="fa-solid fa-id-card"></i> Update User KYC</h3>
+            
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px;">
+                Fixing documents for User: <strong id="admin-kyc-phone" style="color: var(--primary-blue);"></strong>
+            </p>
+            
+            <form id="admin-kyc-form" onsubmit="submitAdminKyc(event)">
+                <input type="hidden" id="admin-kyc-phone-input">
+                
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <label style="display:block; font-weight:bold; margin-bottom:8px; color: #333;">1. New Aadhaar Image</label>
+                    <input type="file" id="admin-aadhaar-file" class="input-file" accept="image/*">
+                </div>
+                
+                <div style="margin-bottom: 25px; text-align: left;">
+                    <label style="display:block; font-weight:bold; margin-bottom:8px; color: #333;">2. New PAN Image</label>
+                    <input type="file" id="admin-pan-file" class="input-file" accept="image/*">
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100" style="background: #e53e3e; font-size: 1.1rem;">
+                    <i class="fa-solid fa-upload"></i> Upload & Replace
+                </button>
+            </form>
+        </div>
+    </div>
+
     <div id="confirm-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 400px; text-align: center; border-top: 4px solid #e53e3e;">
             <div style="margin-bottom: 20px;">

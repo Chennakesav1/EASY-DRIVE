@@ -564,37 +564,57 @@ function showAdminToast(msg, type = "info") {
 // ✨ ADMIN OVERRIDE KYC LOGIC ✨
 // ==========================================
 function triggerAdminKycUpdate(phone) {
-    // Create a hidden file input on the fly
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.multiple = true; // Let admin pick 2 files
-
-    fileInput.onchange = async (e) => {
-        const files = e.target.files;
-        if (files.length === 0) return;
-
-        showAdminToast("Uploading new documents...", "info");
-        const fd = new FormData();
-        fd.append('phone', phone);
-        
-        // Smart assign: First file to Aadhaar, second to PAN (if provided)
-        if (files[0]) fd.append('aadhaar', files[0]);
-        if (files[1]) fd.append('pan', files[1]);
-
-        try {
-            const res = await fetch('/api/admin/update-kyc', { method: 'POST', body: fd });
-            if (res.ok) {
-                showAdminToast("✅ Documents overridden successfully!", "success");
-                fetchUserData(); // Refresh the table
-            } else {
-                showAdminToast("Failed to upload.", "error");
-            }
-        } catch (err) {
-            showAdminToast("Server error.", "error");
-        }
-    };
+    // Open the modal and set the phone number
+    document.getElementById('admin-kyc-phone').innerText = phone;
+    document.getElementById('admin-kyc-phone-input').value = phone;
     
-    // Trigger the file picker
-    fileInput.click();
+    // Clear old files
+    document.getElementById('admin-aadhaar-file').value = "";
+    document.getElementById('admin-pan-file').value = "";
+    
+    document.getElementById('admin-kyc-modal').classList.remove('hidden');
 }
+
+async function submitAdminKyc(event) {
+    event.preventDefault();
+    const btn = event.target.querySelector('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+    btn.disabled = true;
+
+    const phone = document.getElementById('admin-kyc-phone-input').value;
+    const aadhaarFile = document.getElementById('admin-aadhaar-file').files[0];
+    const panFile = document.getElementById('admin-pan-file').files[0];
+
+    // Check if they selected at least one file
+    if (!aadhaarFile && !panFile) {
+        showAdminToast("Please select at least one file to update.", "error");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+
+    const fd = new FormData();
+    fd.append('phone', phone);
+    if (aadhaarFile) fd.append('aadhaar', aadhaarFile); // Exact mapping!
+    if (panFile) fd.append('pan', panFile); // Exact mapping!
+
+    try {
+        const res = await fetch('/api/admin/update-kyc', { method: 'POST', body: fd });
+        if (res.ok) {
+            showAdminToast("✅ Documents overridden successfully!", "success");
+            document.getElementById('admin-kyc-modal').classList.add('hidden');
+            fetchUserData(); // Refresh the table so you can see the new docs
+        } else {
+            showAdminToast("Failed to upload.", "error");
+        }
+    } catch (err) {
+        showAdminToast("Server error.", "error");
+    }
+    
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+}
+
+
+
