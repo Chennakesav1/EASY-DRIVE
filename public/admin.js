@@ -134,7 +134,10 @@ async function fetchUserData() {
             const safePan = user.panUrl && user.panUrl.startsWith('http') ? user.panUrl : 'https://placehold.co/150x100/eeeeee/999999?text=No+Doc';
             let docsHtml = '';
             if (user.aadhaarUrl) docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#3182ce; color:#3182ce;" onclick="viewDocument('${safeAadhaar}')">Aadhaar</button> `;
-            if (user.panUrl) docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#805ad5; color:#805ad5;" onclick="viewDocument('${safePan}')">PAN</button>`;
+            if (user.panUrl) docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#805ad5; color:#805ad5;" onclick="viewDocument('${safePan}')">PAN</button> `;
+            
+            // ✨ NEW: The Admin Override Button
+            docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#e53e3e; color:#e53e3e;" onclick="triggerAdminKycUpdate('${user.phone}')"><i class="fa-solid fa-upload"></i> Fix</button>`;
             
             const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
             const walletHtml = `<span style="color:var(--btn-green); font-weight:bold;">₹${user.walletBalance || 0}</span>`;
@@ -555,4 +558,43 @@ function showAdminToast(msg, type = "info") {
     const toast = document.getElementById('admin-toast'); toast.innerText = msg;
     toast.style.backgroundColor = type === "success" ? "#27ae60" : type === "error" ? "#e53e3e" : "#333";
     toast.className = "show"; setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+}
+
+// ==========================================
+// ✨ ADMIN OVERRIDE KYC LOGIC ✨
+// ==========================================
+function triggerAdminKycUpdate(phone) {
+    // Create a hidden file input on the fly
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true; // Let admin pick 2 files
+
+    fileInput.onchange = async (e) => {
+        const files = e.target.files;
+        if (files.length === 0) return;
+
+        showAdminToast("Uploading new documents...", "info");
+        const fd = new FormData();
+        fd.append('phone', phone);
+        
+        // Smart assign: First file to Aadhaar, second to PAN (if provided)
+        if (files[0]) fd.append('aadhaar', files[0]);
+        if (files[1]) fd.append('pan', files[1]);
+
+        try {
+            const res = await fetch('/api/admin/update-kyc', { method: 'POST', body: fd });
+            if (res.ok) {
+                showAdminToast("✅ Documents overridden successfully!", "success");
+                fetchUserData(); // Refresh the table
+            } else {
+                showAdminToast("Failed to upload.", "error");
+            }
+        } catch (err) {
+            showAdminToast("Server error.", "error");
+        }
+    };
+    
+    // Trigger the file picker
+    fileInput.click();
 }

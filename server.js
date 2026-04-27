@@ -178,67 +178,47 @@ app.get('/api/auth/me', async (req, res) => {
 });
 
 
+// --- ✨ SOFT CHECK KYC (FAST & CUSTOMER FRIENDLY) ✨ ---
 app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), async (req, res) => {
     try {
-        const { phone, manualPan, manualAadhaar } = req.body;
+        const { phone } = req.body;
         if (!req.files || !req.files.pan || !req.files.aadhaar) return res.status(400).json({ error: "Missing document images" });
 
-        // Grab chunks of the numbers for strict validation later
-        const panChunk = manualPan && manualPan.length >= 6 ? manualPan.substring(2, 8).toUpperCase() : "INVALID_PAN";
-        const aadhaarChunk = manualAadhaar && manualAadhaar.length >= 6 ? manualAadhaar.substring(4, 10) : "INVALID_ID";
+        const panPath = req.files.pan[0].path;
+        const aadhaarPath = req.files.aadhaar[0].path;
 
-        // Pre-Process Images instantly (Grayscale, Shrink to 800px width for Speed)
-        const processKYCImage = async (filePath) => {
-            return sharp(filePath).resize({ width: 800, withoutEnlargement: true }).grayscale().jpeg().toBuffer();
-        };
+        // 1. Extremely Fast Basic Check (Shrink to 800px, Grayscale, 1 Scan Only)
+        try {
+            const panBuffer = await sharp(panPath).resize({ width: 800 }).grayscale().toBuffer();
+            const aadhaarBuffer = await sharp(aadhaarPath).resize({ width: 800 }).grayscale().toBuffer();
 
-        const [panBuffer, aadhaarBuffer] = await Promise.all([
-            processKYCImage(req.files.pan[0].path),
-            processKYCImage(req.files.aadhaar[0].path)
-        ]);
+            const [panResult, aadhaarResult] = await Promise.all([
+                Tesseract.recognize(panBuffer, 'eng'),
+                Tesseract.recognize(aadhaarBuffer, 'eng')
+            ]);
+            
+            const pText = panResult.data.text.toUpperCase();
+            const aText = aadhaarResult.data.text.toUpperCase();
 
-        // Smart OCR Worker that combines results from multiple simultaneously rotated scans
-        const strictScanWithRotation = async (imgBuffer, description) => {
-            let combinedText = "";
-            try {
-                const results = await Promise.all([
-                    Tesseract.recognize(imgBuffer, 'eng'), // Scan Standard 0 degrees
-                    Tesseract.recognize(await sharp(imgBuffer).rotate(90).toBuffer(), 'eng'), // Scan Sideways
-                    Tesseract.recognize(await sharp(imgBuffer).rotate(180).toBuffer(), 'eng'), // Scan Upside Down
-                    Tesseract.recognize(await sharp(imgBuffer).rotate(270).toBuffer(), 'eng') // Scan other Sideways
-                ]);
-                results.forEach(r => combinedText += r.data.text.toUpperCase());
-            } catch (err) { console.error(`${description} AI error`, err.message); }
-            return combinedText;
-        };
+            // Basic Keyword Check
+            const looksLikePan = pText.includes("INCOME") || pText.includes("TAX") || pText.includes("GOVT") || pText.includes("PERMANENT");
+            const looksLikeAadhaar = aText.includes("GOVERNMENT") || aText.includes("INDIA") || aText.includes("UNIQUE");
 
-        // RUN BOTH KYC CHECKS IN PARALLEL! Total of 8 scans simultaneously!
-        const [panText, aadhaarText] = await Promise.all([
-            strictScanWithRotation(panBuffer, "PAN"),
-            strictScanWithRotation(aadhaarBuffer, "Aadhaar")
-        ]);
-
-        // --- STRICT VALIDATION SECTION ---
-        // Must find either the exact number chunk OR the official government labels
-        const cleanPanText = panText.replace(/[^A-Z0-9]/g, '');
-        const cleanAadhaarText = aadhaarText.replace(/[^0-9]/g, '');
-        
-        const isPanValid = cleanPanText.includes(panChunk) || panText.includes("INCOME TAX") || panText.includes("PERMANENT ACCOUNT");
-        const isAadhaarValid = cleanAadhaarText.includes(aadhaarChunk) || aadhaarText.includes("GOVERNMENT") || aadhaarText.includes("INDIA");
-
-        if (!isPanValid || !isAadhaarValid) {
-            return res.status(400).json({ error: "AI Verification Failed: The images uploaded do not contain matching text or appear invalid. Please take a clearer photo." });
+            if (!looksLikePan || !looksLikeAadhaar) {
+                console.log(`[Soft Check Warning for ${phone}]: Images might be blurry or incorrect, but allowing user through for Admin review.`);
+            }
+        } catch (ocrError) { 
+            console.log(`[AI Skipped for ${phone}]: AI could not read the image, allowing user through for Admin review.`);
         }
 
-        // --- SUCCESS ---
-        await User.findOneAndUpdate({ phone }, { $set: { isVerified: true, panUrl: req.files.pan[0].path, aadhaarUrl: req.files.aadhaar[0].path }});
-        return res.json({ success: true, message: "Strict AI Verification Passed!" });
+        // 2. ALWAYS let the customer in. Mark as verified so they can rent immediately!
+        await User.findOneAndUpdate({ phone }, { $set: { isVerified: true, panUrl: panPath, aadhaarUrl: aadhaarPath }});
+        return res.json({ success: true, message: "Documents Accepted! Pending Admin Review." });
+
     } catch (error) { 
-        console.error("Critical KYC Error:", error);
-        res.status(500).json({ error: "Verification system overloaded. Please try again in a moment." }); 
+        res.status(500).json({ error: "Server upload failed. Try again." }); 
     }
 });
-
 // ==========================================
 // 4. PAYMENTS & RAZORPAY ROUTES
 // ==========================================
@@ -693,6 +673,23 @@ async function sendMetaWhatsApp(toPhone, templateName, variables = []) {
         if (data.error) console.error("Meta API Error:", data.error.message);
     } catch (error) { console.error("Failed to connect to Meta API:", error); }
 }
+
+// --- ✨ ADMIN PORTAL: OVERRIDE CUSTOMER KYC ✨ ---
+app.post('/api/admin/update-kyc', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), async (req, res) => {
+    try {
+        const { phone } = req.body;
+        const updateData = {};
+        
+        // Update whichever files the admin decided to upload
+        if (req.files.pan) updateData.panUrl = req.files.pan[0].path;
+        if (req.files.aadhaar) updateData.aadhaarUrl = req.files.aadhaar[0].path;
+        
+        await User.findOneAndUpdate({ phone }, { $set: updateData });
+        res.json({ success: true, message: "Admin updated KYC successfully." });
+    } catch (e) {
+        res.status(500).json({ error: "Admin upload failed." });
+    }
+});
 
 // ==========================================
 // 🚨 SERVER START 🚨
