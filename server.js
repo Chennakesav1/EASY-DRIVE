@@ -182,9 +182,17 @@ app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), a
 
         let panText = "", aadhaarText = "";
         try {
-            panText = (await Tesseract.recognize(req.files.pan[0].path, 'eng')).data.text.toUpperCase();
-            aadhaarText = (await Tesseract.recognize(req.files.aadhaar[0].path, 'eng')).data.text.toUpperCase();
-        } catch (ocrError) { return res.status(400).json({ error: "Could not read images. Take a clearer photo." }); }
+            // ✨ THE FIX: Run both AI scans simultaneously instead of waiting! ✨
+            const [panResult, aadhaarResult] = await Promise.all([
+                Tesseract.recognize(req.files.pan[0].path, 'eng'),
+                Tesseract.recognize(req.files.aadhaar[0].path, 'eng')
+            ]);
+            
+            panText = panResult.data.text.toUpperCase();
+            aadhaarText = aadhaarResult.data.text.toUpperCase();
+        } catch (ocrError) { 
+            return res.status(400).json({ error: "Could not read images. Take a clearer photo." }); 
+        }
 
         const cleanPanText = panText.replace(/[^A-Z0-9]/g, '');
         const cleanAadhaarText = aadhaarText.replace(/[^0-9]/g, '');

@@ -328,7 +328,6 @@ function previewDoc(event, previewElementId) {
         reader.readAsDataURL(file);
     }
 }
-
 async function saveKYC() {
     const manualPan = document.getElementById('manual-pan').value.trim().toUpperCase();
     const manualAadhaar = document.getElementById('manual-aadhaar').value.replace(/\s/g, '');
@@ -338,6 +337,9 @@ async function saveKYC() {
     if (!manualPan || !manualAadhaar) return showToast("Please enter both ID numbers.", "error");
     if (!aadhaarFile || !panFile) return showToast("Please upload both document images.", "error");
 
+    // Change the text right before showing the loader to set expectations
+    document.getElementById('loader-text').innerText = "AI Scanning Documents... This may take up to 20 seconds.";
+    
     const loader = document.getElementById('global-loader');
     loader.classList.remove('hidden');
 
@@ -351,15 +353,27 @@ async function saveKYC() {
 
         const response = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await response.json();
+        
         loader.classList.add('hidden');
+        // Reset loader text back to default just in case it's used elsewhere
+        document.getElementById('loader-text').innerText = "Processing...";
 
         if (response.ok) {
             showToast("Identity Verified Successfully!", "success");
-            localStorage.setItem('easyDriveUser_aadhaar', 'verified'); localStorage.setItem('easyDriveUser_pan', 'verified');
-            updateDocStatusInMenu('aadhaar'); updateDocStatusInMenu('pan');
-            goToScreen('dashboard-screen'); fetchAndRenderVehicles('All');
-        } else { showToast(data.error || "Verification failed.", "error"); }
-    } catch (error) { loader.classList.add('hidden'); showToast("Server error.", "error"); }
+            localStorage.setItem('easyDriveUser_aadhaar', 'verified'); 
+            localStorage.setItem('easyDriveUser_pan', 'verified');
+            updateDocStatusInMenu('aadhaar'); 
+            updateDocStatusInMenu('pan');
+            goToScreen('dashboard-screen'); 
+            fetchAndRenderVehicles('All');
+        } else { 
+            showToast(data.error || "Verification failed.", "error"); 
+        }
+    } catch (error) { 
+        loader.classList.add('hidden'); 
+        document.getElementById('loader-text').innerText = "Processing...";
+        showToast("Server error.", "error"); 
+    }
 }
 
 function viewKYC(type) {
