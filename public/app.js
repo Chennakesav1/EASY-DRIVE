@@ -999,7 +999,8 @@ async function openStationsScreen() {
                         </div>
                     </div>`, { sticky: true });
 
-                marker.on('click', () => window.open(`https://www.google.com/maps?q=$${exactLat},${exactLng}`, '_blank'));
+                // Fix: Correct Google Maps URL and exactLat variable
+                marker.on('click', () => window.open(`https://maps.google.com/?q=${exactLat},${exactLng}`, '_blank'));
                 markersCluster.addLayer(marker);
                 bounds.extend([exactLat, exactLng]);
                 hasValidPoints = true;
@@ -1043,7 +1044,7 @@ function renderStationCards(stations, hasGPS) {
                             </span>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="openSwapAction('${s._id}', '${s.name}', ${s.lat}, ${s.lng})">
+                    <button class="btn btn-primary" onclick="window.open('https://maps.google.com/?q=${s.lat},${s.lng}', '_blank')">
                         <i class="fa-solid fa-diamond-turn-right"></i> Navigate
                     </button>
                 </div>
@@ -1063,7 +1064,7 @@ function openSwapAction(stationId, stationName, lat, lng) {
     currentSwapStationLng = lng; // Store destination Longitude
     
     document.getElementById('swap-dest-name').innerText = stationName;
-    document.getElementById('swap-maps-btn').href = `http://maps.google.com/maps?q=$${lat},${lng}`;
+    document.getElementById('swap-maps-btn').href = `https://maps.google.com/?q=${lat},${lng}`;
     document.getElementById('swap-action-modal').classList.remove('hidden');
 }
 
