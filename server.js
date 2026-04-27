@@ -204,6 +204,94 @@ app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), a
 // ==========================================
 // 4. PAYMENTS & RAZORPAY ROUTES
 // ==========================================
+
+// ✨ NEW HELPER: Generates the PDF Invoice automatically in the background ✨
+async function createInvoicePDF(payment, user, booking, bike) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const doc = new PDFDocument({ margin: 50 });
+            const buffers = [];
+            doc.on('data', buffers.push.bind(buffers));
+            doc.on('end', () => resolve(Buffer.concat(buffers)));
+
+            // --- Company Header ---
+            doc.fontSize(26).fillColor('#27ae60').font('Helvetica-Bold').text('EASY DRIVE', { align: 'left' });
+            doc.fontSize(10).fillColor('#666666').font('Helvetica').text('Premium EV Rentals - Hyderabad', { align: 'left' });
+            doc.moveDown(0.5);
+            doc.fillColor('#333333').text('Phone: +91 7989004552');
+            doc.text('Email: chennakesavarao89@gmail.com');
+            
+            // --- Divider ---
+            doc.moveDown();
+            doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd');
+            doc.moveDown();
+            
+            doc.fontSize(18).fillColor('#333333').font('Helvetica-Bold').text('PAYMENT RECEIPT / INVOICE', { align: 'center' });
+            doc.moveDown();
+
+            // --- Customer & Transaction Details ---
+            const startY = doc.y;
+            doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold').text('Customer Details:', 50, startY);
+            doc.font('Helvetica').text(`Name: ${user && user.name ? user.name : 'Guest'}`);
+            doc.text(`Phone: +91 ${payment.phone}`);
+            if(user && user.email) doc.text(`Email: ${user.email}`);
+            
+            doc.font('Helvetica-Bold').text('Transaction Details:', 350, startY);
+            doc.font('Helvetica').text(`ID: ${payment.paymentId}`, 350, startY + 15);
+            doc.text(`Date: ${new Date(payment.createdAt).toLocaleString()}`, 350, startY + 30);
+            doc.text(`Status: ${payment.status}`, 350, startY + 45);
+            doc.moveDown(3);
+
+            // --- Payment Table ---
+            doc.x = 50; 
+            const tableTop = doc.y;
+            doc.rect(50, tableTop, 500, 30).fill('#f4f7f6').stroke('#dddddd');
+            doc.fillColor('#000').font('Helvetica-Bold').text('Description', 60, tableTop + 10);
+            doc.text('Amount', 450, tableTop + 10);
+            
+            doc.moveDown(1.5);
+            doc.font('Helvetica');
+            const desc = booking ? `Vehicle Rental: ${booking.bikeModel}` : 'Vehicle Rental / Subscription Renewal';
+            doc.text(desc, 60, doc.y);
+            doc.text(`INR ${payment.amount}.00`, 450, doc.y);
+            
+            // --- Total ---
+            doc.moveDown(2);
+            doc.moveTo(350, doc.y).lineTo(550, doc.y).stroke('#dddddd');
+            doc.moveDown(0.5);
+            doc.fontSize(14).font('Helvetica-Bold').text(`Total Paid: INR ${payment.amount}.00`, { align: 'right' });
+            
+            // --- Bike Image Fetch ---
+            if (bike && bike.imageUrl) {
+                try {
+                    let imgBuffer;
+                    if (bike.imageUrl.startsWith('http')) {
+                        const response = await fetch(bike.imageUrl);
+                        const arrayBuffer = await response.arrayBuffer();
+                        imgBuffer = Buffer.from(arrayBuffer);
+                    } else {
+                        const fs = require('fs'); const path = require('path');
+                        imgBuffer = fs.readFileSync(path.join(__dirname, bike.imageUrl));
+                    }
+                    doc.moveDown(2); const imageY = doc.y;
+                    doc.fontSize(12).font('Helvetica-Bold').text('Vehicle Rented:', 50, imageY);
+                    doc.image(imgBuffer, 50, imageY + 20, { width: 220, fit: [220, 150] });
+                    doc.y = imageY + 180;
+                } catch (imgErr) { console.log("Could not load image for PDF", imgErr.message); }
+            }
+
+            // --- Footer ---
+            doc.y = 700; 
+            doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd');
+            doc.moveDown();
+            doc.fontSize(10).font('Helvetica').fillColor('#888888').text('Thank you for choosing eco-friendly transit with Easy Drive.', { align: 'center' });
+            doc.text('For support, contact us at +91 7989004552 or chennakesavarao89@gmail.com', { align: 'center' });
+
+            doc.end(); 
+        } catch (err) { reject(err); }
+    });
+}
+
 app.post('/api/payment/create-order', async (req, res) => {
     try {
         const order = await razorpay.orders.create({ amount: req.body.amount * 100, currency: "INR", receipt: "rcpt_" + Date.now() });
@@ -217,22 +305,60 @@ app.post('/api/payment/verify', async (req, res) => {
     const expectedSign = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "YourSecret").update(sign.toString()).digest("hex");
 
     if (razorpay_signature === expectedSign) {
-        await new Payment({ phone, paymentId: razorpay_payment_id, amount, status: 'Success' }).save();
-        await new Booking({ phone, bikeModel, paymentId: razorpay_payment_id, amount, pickupLocation }).save();
+        const newPayment = await new Payment({ phone, paymentId: razorpay_payment_id, amount, status: 'Success' }).save();
+        const newBooking = await new Booking({ phone, bikeModel, paymentId: razorpay_payment_id, amount, pickupLocation }).save();
         await Bike.findOneAndUpdate({ model: bikeModel }, { $inc: { quantity: -1 } });
 
-        if (promoCode) {
-            await Promo.findOneAndUpdate({ code: promoCode.toUpperCase() }, { $push: { usedBy: phone } });
-        }
+        if (promoCode) await Promo.findOneAndUpdate({ code: promoCode.toUpperCase() }, { $push: { usedBy: phone } });
 
         try {
             const user = await User.findOne({ phone: phone });
-            await sendMetaWhatsApp(phone, 'payment_confirmed', [user ? user.name : "Rider", amount, bikeModel, pickupLocation]);
+            const bike = await Bike.findOne({ model: bikeModel });
             
+            // 1. Send WhatsApp Notification
+            await sendMetaWhatsApp(phone, 'payment_confirmed', [user && user.name ? user.name : "Rider", amount, bikeModel, pickupLocation]);
+            
+            // 2. ✨ BEAUTIFUL EMAIL WITH PDF ATTACHMENT ✨
             if (user && user.email) {
+                const pdfBuffer = await createInvoicePDF(newPayment, user, newBooking, bike);
+
+                const emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                        <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 30px 20px; text-align: center; color: white;">
+                            <h1 style="margin: 0; font-size: 24px;">Booking Confirmed! 🎉</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Your ride is ready for pickup.</p>
+                        </div>
+                        <div style="padding: 30px; background: #ffffff;">
+                            <p style="font-size: 16px; color: #333;">Hi <strong>${user.name || 'Rider'}</strong>,</p>
+                            <p style="font-size: 16px; color: #555; line-height: 1.5;">Thank you for choosing <strong>Easy Drive</strong>. Your payment of <strong style="color: #27ae60;">₹${amount}</strong> was successful.</p>
+                            
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0;">
+                                <h3 style="margin-top: 0; color: #2d3748; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px;">Booking Summary</h3>
+                                <p style="margin: 8px 0; color: #4a5568;"><strong>Vehicle:</strong> ${bikeModel}</p>
+                                <p style="margin: 8px 0; color: #4a5568;"><strong>Payment ID:</strong> <span style="font-family: monospace;">${razorpay_payment_id}</span></p>
+                                <p style="margin: 8px 0; color: #4a5568;"><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                                <a href="${pickupLocation}" style="display: inline-block; margin-top: 15px; background: #007bff; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold;">📍 Open Maps for Pickup</a>
+                            </div>
+                            
+                            <p style="font-size: 15px; color: #555;">We have attached your official PDF invoice to this email for your records.</p>
+                            
+                            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+                            <p style="font-size: 14px; color: #718096; margin: 0;">Ride Safe & Stay Green 🍃</p>
+                            <p style="font-size: 14px; color: #2d3748; font-weight: bold; margin: 5px 0 0 0;">The Easy Drive Team</p>
+                        </div>
+                    </div>
+                `;
+
                 transporter.sendMail({
-                    from: `"Easy Drive" <${process.env.EMAIL_USER}>`, to: user.email, subject: `Booking Confirmed: ${bikeModel}`,
-                    html: `<h2>Payment Successful! 🎉</h2><p>Payment of <strong>₹${amount}</strong> received for ${bikeModel}.</p>`
+                    from: `"Easy Drive 🛵" <${process.env.EMAIL_USER}>`,
+                    to: user.email,
+                    subject: `Your Easy Drive Booking: ${bikeModel} 🚀`,
+                    html: emailHtml,
+                    attachments: [{
+                        filename: `EasyDrive_Invoice_${razorpay_payment_id}.pdf`,
+                        content: pdfBuffer,
+                        contentType: 'application/pdf'
+                    }]
                 });
             }
         } catch (err) { console.log("Notification failed", err); }
@@ -260,88 +386,15 @@ app.get('/api/payments/:paymentId/invoice', async (req, res) => {
         
         const user = await User.findOne({ phone: payment.phone });
         const booking = await Booking.findOne({ paymentId: payment.paymentId });
-        
         let bike = null;
         if (booking) bike = await Bike.findOne({ model: booking.bikeModel });
 
+        // Reuse the exact same PDF generator for the Admin Panel!
+        const pdfBuffer = await createInvoicePDF(payment, user, booking, bike);
+
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=EasyDrive_Invoice_${payment.paymentId}.pdf`);
-
-        const doc = new PDFDocument({ margin: 50 });
-        doc.pipe(res); 
-        
-        doc.fontSize(26).fillColor('#27ae60').font('Helvetica-Bold').text('EASY DRIVE', { align: 'left' });
-        doc.fontSize(10).fillColor('#666666').font('Helvetica').text('Premium EV Rentals - Hyderabad', { align: 'left' });
-        doc.moveDown(0.5);
-        doc.fillColor('#333333').text('Phone: +91 7989004552');
-        doc.text('Email: chennakesavarao89@gmail.com');
-        
-        doc.moveDown();
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd');
-        doc.moveDown();
-        
-        doc.fontSize(18).fillColor('#333333').font('Helvetica-Bold').text('PAYMENT RECEIPT / INVOICE', { align: 'center' });
-        doc.moveDown();
-
-        const startY = doc.y;
-        doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold').text('Customer Details:', 50, startY);
-        doc.font('Helvetica').text(`Name: ${user ? user.name : 'Guest'}`);
-        doc.text(`Phone: +91 ${payment.phone}`);
-        if(user && user.email) doc.text(`Email: ${user.email}`);
-        
-        doc.font('Helvetica-Bold').text('Transaction Details:', 350, startY);
-        doc.font('Helvetica').text(`ID: ${payment.paymentId}`, 350, startY + 15);
-        doc.text(`Date: ${new Date(payment.createdAt).toLocaleString()}`, 350, startY + 30);
-        doc.text(`Status: ${payment.status}`, 350, startY + 45);
-        doc.moveDown(3);
-
-        doc.x = 50; 
-        const tableTop = doc.y;
-        doc.rect(50, tableTop, 500, 30).fill('#f4f7f6').stroke('#dddddd');
-        doc.fillColor('#000').font('Helvetica-Bold').text('Description', 60, tableTop + 10);
-        doc.text('Amount', 450, tableTop + 10);
-        
-        doc.moveDown(1.5);
-        doc.font('Helvetica');
-        const desc = booking ? `Vehicle Rental: ${booking.bikeModel}` : 'Vehicle Rental / Subscription Renewal';
-        doc.text(desc, 60, doc.y);
-        doc.text(`INR ${payment.amount}.00`, 450, doc.y);
-        
-        doc.moveDown(2);
-        doc.moveTo(350, doc.y).lineTo(550, doc.y).stroke('#dddddd');
-        doc.moveDown(0.5);
-        doc.fontSize(14).font('Helvetica-Bold').text(`Total Paid: INR ${payment.amount}.00`, { align: 'right' });
-        
-        if (bike && bike.imageUrl) {
-            try {
-                let imgBuffer;
-                if (bike.imageUrl.startsWith('http')) {
-                    const response = await fetch(bike.imageUrl);
-                    const arrayBuffer = await response.arrayBuffer();
-                    imgBuffer = Buffer.from(arrayBuffer);
-                } else {
-                    const fs = require('fs');
-                    const path = require('path');
-                    imgBuffer = fs.readFileSync(path.join(__dirname, bike.imageUrl));
-                }
-                
-                doc.moveDown(2);
-                const imageY = doc.y;
-                doc.fontSize(12).font('Helvetica-Bold').text('Vehicle Rented:', 50, imageY);
-                doc.image(imgBuffer, 50, imageY + 20, { width: 220, fit: [220, 150] });
-                doc.y = imageY + 180;
-            } catch (imgErr) {
-                console.log("Could not load image for PDF", imgErr.message);
-            }
-        }
-
-        doc.y = 700; 
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd');
-        doc.moveDown();
-        doc.fontSize(10).font('Helvetica').fillColor('#888888').text('Thank you for choosing eco-friendly transit with Easy Drive.', { align: 'center' });
-        doc.text('For support, contact us at +91 7989004552 or chennakesavarao89@gmail.com', { align: 'center' });
-
-        doc.end(); 
+        res.send(pdfBuffer);
     } catch (error) { 
         console.error("Invoice Error:", error); 
         if(!res.headersSent) res.status(500).send("Error generating invoice."); 
