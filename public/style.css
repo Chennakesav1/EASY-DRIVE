@@ -1,0 +1,358 @@
+:root {
+    /* ✨ COMPLETE LIGHT MODE THEME ✨ */
+    --bg-dark: #f8f9fa;       /* Light gray background for the app */
+    --card-bg: #ffffff;       /* Pure white for cards and modals */
+    --border-color: #e2e8f0;  /* Soft gray for borders */
+    
+    /* Text Colors */
+    --text-main: #1a202c;     /* Dark navy/black for primary text */
+    --text-muted: #64748b;    /* Slate gray for secondary text */
+    
+    /* Brand Colors */
+    --primary-blue: #007bff;  /* Tech Blue */
+    --primary-hover: #0056b3;    
+    --btn-green: #27ae60;     /* Eco Green */
+    --btn-orange: #f39c12;    /* Energetic Orange */
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Soft shadow for light mode */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
+
+.hidden { display: none !important; }
+.flex-center { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; }
+.flex-row { display: flex; align-items: center; }
+.w-100 { width: 100%; }
+.mt-10 { margin-top: 10px; } .mt-15 { margin-top: 15px; } .mt-20 { margin-top: 20px; } .mt-30 { margin-top: 30px; } .mb-10 { margin-bottom: 10px; } .mb-15 { margin-bottom: 15px; } .mb-20 { margin-bottom: 20px; } .mb-30 { margin-bottom: 30px; } .mr-10 { margin-right: 10px; } .ml-10 { margin-left: 10px; } .ml-20 { margin-left: 20px; }
+.text-blue { color: var(--primary-blue); } .text-gray { color: var(--text-muted); } .text-green { color: var(--btn-green); } .text-sm { font-size: 0.85rem; } .text-lg { font-size: 1.2rem; font-weight: bold; }
+.center-text { text-align: center; }
+.relative { position: relative; }
+.text-red { color: #e53e3e; }
+.font-bold { font-weight: bold; }
+.line-height-1-5 { line-height: 1.5; }
+
+.screen { display: none; opacity: 0; transition: opacity 0.4s ease-in-out; min-height: 100vh; padding-bottom: 50px; }
+.active-screen { display: block; opacity: 1; }
+.flex-center.active-screen { display: flex; }
+
+.container { max-width: 600px; margin: 0 auto; padding: 20px; width: 100%; }
+.logo-3d { font-size: 3.5rem; color: var(--primary-blue); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* ✨ PREMIUM 3D CSS LOADER ✨ */
+.premium-loader {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 6px solid rgba(0, 123, 255, 0.1);
+    border-top-color: var(--primary-blue);
+    border-bottom-color: var(--btn-orange);
+    animation: spin3D 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.2);
+}
+@keyframes spin3D {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+.solid-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 30px; border-radius: 12px; box-shadow: var(--shadow); width: 90%; max-width: 450px; margin: 0 auto; transition: border-color 0.3s; }
+.solid-card:hover { border-color: #cbd5e1; }
+
+.input-field { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #f8f9fa; color: var(--text-main); font-size: 1rem; outline: none; transition: all 0.3s; }
+.input-field:focus { border-color: var(--primary-blue); background: #ffffff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); }
+.block-label { display: block; margin-bottom: 5px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; }
+.input-file { width: 100%; padding: 10px; background: #f8f9fa; border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-muted); font-size: 0.85rem; cursor: pointer; }
+.doc-preview { width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid var(--primary-blue); margin-top: 10px; }
+
+.btn { padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s; border: none; outline: none; }
+.btn-primary { background: var(--primary-blue); color: #ffffff; }
+.btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); }
+.btn-secondary { background: #e2e8f0; color: var(--text-main); padding: 14px 20px; font-size: 0.85rem; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn-outline { background: #ffffff; border: 1px solid var(--primary-blue); color: var(--primary-blue); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; }
+.btn-outline.active { background: var(--primary-blue); color: #ffffff; font-weight: bold; }
+.link-text { color: var(--primary-blue); cursor: pointer; text-decoration: underline; font-size: 0.9rem; font-weight: 500; }
+
+.btn-disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+.dimmed-card { opacity: 0.65; filter: grayscale(100%); }
+
+.app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); margin-bottom: 20px;}
+.logo-text { font-size: 1.5rem; color: var(--primary-blue); font-weight: 800; text-transform: uppercase;}
+.menu-icon { font-size: 1.5rem; color: var(--primary-blue); cursor: pointer; transition: transform 0.2s; }
+.menu-icon:hover { transform: scale(1.1); }
+.location-picker { background: #f8f9fa; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid var(--primary-blue); color: var(--primary-blue); font-weight: 600; }
+.category-filters { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; padding: 0 20px; }
+.category-filters::-webkit-scrollbar { display: none; }
+
+.vehicle-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 0 20px; }
+.vehicle-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; }
+.vehicle-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+.vehicle-img { width: 100%; height: 180px; object-fit: cover; cursor: zoom-in; border-bottom: 1px solid var(--border-color); }
+.vehicle-info { padding: 15px; }
+.original-price { text-decoration: line-through; color: var(--text-muted); margin-left: 10px; font-size: 0.9rem; }
+.discount-price { font-size: 1.2rem; font-weight: bold; color: var(--text-main); }
+
+#sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9998; backdrop-filter: blur(2px); }
+#sidebar-overlay.hidden { display: none !important; }
+.sidebar { position: fixed; top: 0; left: -350px; width: 300px; height: 100%; background: #ffffff; z-index: 9999; border-right: 1px solid var(--border-color); transition: left 0.3s ease-in-out; display: flex; flex-direction: column; padding: 20px; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
+.sidebar.active { left: 0; }
+.close-btn { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 10000; }
+.close-btn:hover { color: var(--text-main); }
+.sidebar-links { list-style: none; overflow-y: auto; flex: 1; margin-top: 20px; }
+.sidebar-links li { margin-bottom: 5px; }
+.sidebar-links a { display: flex; align-items: center; padding: 12px; color: var(--text-main); text-decoration: none; border-radius: 8px; font-size: 1rem; transition: background 0.3s; font-weight: 500; }
+.sidebar-links a i { margin-right: 15px; color: var(--primary-blue); width: 20px; text-align: center; font-size: 1.2rem; }
+.sidebar-links a:hover { background: #f8f9fa; color: var(--primary-blue); }
+.section-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 10px 12px; font-weight: bold; display: block; margin-top: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+.menu-item { display: flex; align-items: center; padding: 12px; color: var(--text-main); text-decoration: none; border-radius: 8px; font-size: 1rem; transition: background 0.3s; font-weight: 500; cursor: pointer; }
+.menu-item i { margin-right: 15px; width: 20px; text-align: center; font-size: 1.2rem; }
+.menu-item:hover { background: #f8f9fa; }
+
+.modal { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background-color: rgba(0, 0, 0, 0.7) !important; z-index: 999999 !important; backdrop-filter: blur(3px); }
+.modal.hidden { display: none !important; }
+#expanded-img { max-width: 90%; max-height: 80vh; border-radius: 12px; border: 4px solid #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+.toast-container { position: fixed; top: 25px; right: 20px; z-index: 9999999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+.toast { min-width: 250px; max-width: 350px; background: #ffffff; color: var(--text-main); padding: 16px 20px; border-radius: 12px; border-left: 4px solid var(--primary-blue); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 15px; transform: translateX(120%); opacity: 0; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease; }
+.toast.show { transform: translateX(0); opacity: 1; }
+.toast.success { border-left-color: var(--btn-green); }
+.toast.success i { color: var(--btn-green); }
+.toast.error { border-left-color: #e53e3e; }
+.toast.error i { color: #e53e3e; }
+
+@media screen and (max-width: 768px) {
+    .app-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+    .header-right { width: 100%; display: flex; justify-content: flex-end; }
+    .vehicle-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    .sidebar { width: 280px; left: -280px; }
+    .logo-3d { font-size: 2.8rem; }
+}
+
+
+/* ✨ ABOUT US MODAL CSS ✨ */
+.about-card-content { max-height: 95vh; overflow-y: auto; width: 95%; max-width: 800px; padding: 0; border-radius: 12px; background: #ffffff; }
+.close-btn-wrapper { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #333; font-size: 1.2rem; cursor: pointer; z-index: 10; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+.close-btn-wrapper:hover { background: var(--primary-blue); color: white; transform: scale(1.1); }
+.thank-you-banner { width: 100%; height: 220px; }
+.thank-you-banner .banner-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px 12px 0 0; }
+.about-body { padding: 0 40px 30px 40px; }
+.person-container { display: flex; flex-direction: column; align-items: center; margin-top: -65px; position: relative; z-index: 2; }
+.person-img { width: 130px; height: 130px; border-radius: 50%; border: 5px solid #ffffff; box-shadow: 0 5px 20px rgba(0,0,0,0.1); object-fit: cover; background: #fff;}
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.about-text { font-size: 0.95rem; line-height: 1.8; }
+
+/* Mobile Responsiveness for About Us */
+@media screen and (max-width: 768px) {
+    .about-grid { grid-template-columns: 1fr; gap: 20px; }
+    .about-body { padding: 0 20px 20px 20px; }
+}
+@media screen and (max-width: 480px) {
+    .about-card-content { width: 100%; max-height: 100vh; border-radius: 0; }
+    .thank-you-banner { height: 180px; }
+    .thank-you-banner .banner-img { border-radius: 0; }
+}
+
+/* =========================================================
+   ✨ PREMIUM RESPONSIVE & ANIMATION UPGRADES ✨
+   ========================================================= */
+
+/* --- 1. SMOOTH HOVER & CLICK ANIMATIONS --- */
+.btn, .vehicle-card, .input-field, .menu-item, .contact-link {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Button Press Effect */
+.btn:active, .contact-link:active {
+    transform: scale(0.94);
+}
+
+/* --- 2. BOUNCY MODAL POP-UPS --- */
+.modal:not(.hidden) .card {
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes popIn {
+    0% { opacity: 0; transform: scale(0.8) translateY(30px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* --- 3. SMOOTH SCREEN FADE-IN --- */
+.screen.active-screen {
+    animation: fadeInScreen 0.4s ease-in-out forwards;
+}
+@keyframes fadeInScreen {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- 4. TABLET VIEW (iPads & Small Laptops - up to 992px) --- */
+@media screen and (max-width: 992px) {
+    .vehicle-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 cards per row on Tablet */
+        gap: 15px;
+    }
+    .about-grid {
+        grid-template-columns: 1fr; /* Stack about sections */
+        gap: 20px;
+    }
+    .app-header {
+        padding: 15px;
+    }
+}
+
+/* --- 5. MOBILE VIEW (Phones - up to 576px) --- */
+@media screen and (max-width: 576px) {
+    /* Make sidebar take up exactly 85% of phone screen */
+    .sidebar { width: 85vw; left: -85vw; }
+    .sidebar.active { left: 0; }
+    
+    /* Stack vehicle cards 1 per row for easy thumb scrolling */
+    .vehicle-grid {
+        grid-template-columns: 1fr; 
+        padding: 0 15px;
+    }
+    
+    /* Reorganize Header for small screens */
+    .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .header-right {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end; 
+    }
+    
+    /* Make filter buttons horizontally scrollable and neat */
+    .category-filters {
+        padding: 0 15px 10px 15px;
+    }
+    .btn-outline {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+        white-space: nowrap; /* Prevents text from breaking lines */
+    }
+    
+    /* Adjust modals so they don't break off the screen */
+    .modal .card {
+        width: 95%;
+        padding: 20px;
+        max-height: 90vh; /* Prevents modal from being taller than phone */
+        overflow-y: auto; /* Adds scroll inside modal if needed */
+    }
+    
+    /* Shrink the main loading logo */
+    .logo-3d { font-size: 2.5rem; }
+    
+    /* Make form inputs and buttons perfectly thumb-sized */
+    .input-field, .btn {
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    /* About Us specific mobile fixes */
+    .thank-you-banner { height: 160px; }
+    .person-img { width: 100px; height: 100px; }
+    .about-body { padding: 0 20px 20px 20px; }
+    .person-container { margin-top: -50px; }
+}
+/* ✨ PREMIUM +91 PHONE INPUT ✨ */
+.phone-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1; /* Takes up remaining space next to the Get OTP button */
+}
+.country-code {
+    position: absolute;
+    left: 15px;
+    color: var(--text-main);
+    font-weight: bold;
+    font-size: 1rem;
+    pointer-events: none; /* Prevents user from clicking the text */
+    border-right: 1px solid var(--border-color);
+    padding-right: 10px;
+}
+.phone-with-prefix {
+    padding-left: 65px !important; /* Pushes the typing area past the +91 */
+}
+
+
+/* ==========================================
+   ✨ BEAUTIFUL UNIVERSAL MODALS & ALERTS ✨
+   ========================================== */
+
+/* 1. The Dark Overlay (Centers everything) */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.65); /* Professional dark overlay */
+    z-index: 999999 !important; /* Forces it above everything else */
+    
+    /* These 3 lines guarantee it is perfectly in the middle of the screen */
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    
+    backdrop-filter: blur(4px); /* Adds a modern blurred background effect */
+}
+
+/* 2. Hide the modal when not needed */
+.modal.hidden {
+    display: none !important;
+}
+
+/* 3. The White Card UI Theme */
+.modal-content {
+    background: #ffffff; /* Solid White Background */
+    padding: 30px 25px;
+    border-radius: 16px; /* Soft, modern rounded corners */
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); /* Deep shadow for 3D effect */
+    position: relative;
+    text-align: center;
+    
+    /* The smooth, bouncy pop-in animation */
+    animation: alertPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+}
+
+/* 4. The Pop-In Animation */
+@keyframes alertPopIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Ensure the buttons inside the modal look great */
+.modal-content .btn {
+    border-radius: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-content .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+
+.faq-item { border-bottom: 1px solid var(--border-color); cursor: pointer; padding: 15px 0; }
+.faq-question { font-weight: bold; display: flex; justify-content: space-between; color: var(--text-main); }
+.faq-answer { max-height: 0; overflow: hidden; transition: all 0.3s ease; color: var(--text-muted); font-size: 0.9rem; padding-top: 0; }
+.faq-item.active .faq-answer { max-height: 100px; padding-top: 10px; }
+.faq-item.active i { transform: rotate(180deg); color: var(--primary-blue); }

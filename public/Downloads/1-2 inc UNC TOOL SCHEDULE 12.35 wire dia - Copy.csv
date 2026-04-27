@@ -1,0 +1,91 @@
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,PRECIFAST PVT LIMITED,,,,,,,,
+,TOOL SCHEDULE,,,,,,,,
+,TOOL LAY OUT NO,,TS-L536L201,,SIZE,,,,"1/2""-13UNCxL  HEX HEAD SCREWS"
+,DATE,,8/9/2025,,MACHINE,,,,164S
+,WIRE DIA,,Ø12.35,,,,,,
+,S.No.,Tool Code,Tool Description,NO OF TOOLS,REVISION ,,,,REMARKS
+,,,,,,,,,
+, CUT OFF  STATION,,,,1,2,3,4,
+,1,T.04.0.071.004,Feed Roll,4,a,-,-,-,"M12 TOOLS
+"
+,2,T.04.0.012.001,Pusher Pin,1,-,-,-,-,
+,3,T.04.0.073.004,Quill ,1,a,-,-,-,
+,4,T.04.0.076.001,Cutter Holder  ,1,-,-,-,-,
+,5,T.01.0.073.004,Cutter  ,1,-,-,-,-,
+,6,T.04.0.077.023,Transfer Finger (L.H.) S upto 3 Inches,4,-,a,-,-,M12 Common Fingers
+,7,T.04.0.078.023,Transfer Finger (R.H.) S upto 3 Inches,4,-,a,-,-,
+,8,T.04.0.077.020,Transfer Finger (L.H.) M 3-6 Inches,4,-,a,-,-,
+,9,T.04.0.078.020,Transfer Finger (R.H.) M 3-6 Inches,4,-,a,-,-,
+, 1ST STATION,,,,,,,,
+,1,T.04.0.001.002,Punch Case,1,-,a,-,-,M12 HHS/HHB
+,2,T.04.0.021.021,Heading Insert,1,-,-,-,-,N
+,3,T.04.0.046.018,Plain Die case,1,-,-,-,-,N
+,4,T.04.0.051.016,Front Extrusion Die (50),1,-,-,-,-,N
+,5,T.04.0.055.078,Inter Filler (75),1,-,-,-,-,N
+,6,T.04.0.055.079,Inter Filler (50),1,-,-,-,-,N
+,7,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,8,T.04.0.022.033,Die Case Hard Plate Bush,1,-,-,-,-,N
+,9,T.04.0.044.046,K.O.Pin,1,-,-,-,-,N
+,10,T.04.0.045.038,K.O.Pin Head,1,-,-,-,-,N
+, 2ND STATION,,,,,,,,
+,1,T.04.0.001.001,Punch case,1,-,a,-,-,M12 Common Tool
+,2,T.04.0.005.036,Cone Insert,1,-,-,-,-,N
+,3,T.04.0.006.013,Punch Pin (60),1,-,-,-,-,N
+,4,T.04.0.004.040,Step Filler (37.50),1,-,-,-,-,N
+,5,T.04.0.004.011,Punch Filler (32),2,-,-,-,-,N
+,6,T.04.0.046.018,Plain Die Case,1,-,-,-,-,N
+,7,T.04.0.080.026,Front Die (50),1,-,-,-,-,N
+,8,T.04.0.055.078,Inter Filler (75),1,-,-,-,-,N
+,9,T.04.0.055.079,Inter Filler (50) ,1,-,-,-,-,N
+,10,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,11,T.04.0.022.033,Die Case Hard Plate Bush,1,-,-,-,-,N
+,12,T.04.0.044.046,K.O.Pin,1,-,-,-,-,N
+,13,T.04.0.045.038,K.O.Pin Head,1,-,-,-,-,N
+, 3RD STATION,,,,,,,,
+,1,T.04.0.001.002,Punch case,1,-,a,-,-,M12 Common Tool
+,2,T.04.1.014.002, HEX Punch Pin,1,-,a,-,-,N
+,3,T.04.0.021.025,Heading Insert Grade - 5,1,-,-,-,-,N
+,4,T.04.0.021.026,Heading Insert Grade - 8,1,-,-,-,-,N
+,5,T.04.0.046.019,Screwed Die case,1,-,-,-,-,N
+,6,T.04.0.079.028,Front  W/F Die(30),1,-,-,-,-,N
+,7,T.04.0.079.029,Front  W/F Die(43),1,-,-,-,-,N
+,8,T.04.0.079.030,Front  W/F Die(55.50),1,-,-,-,-,N
+,9,T.04.0.055.080,Inter Filler(38),1,-,-,-,-,N
+,10,T.04.0.058.047,Pointing Die (25),1,-,-,-,-,N
+,11,T.04.0.058.048,Pointing Die (20),1,-,-,-,-,N
+,12,T.04.0.056.127 ,Back Filler (30),1,-,-,-,-,N
+,13,T.04.0.056.128,Back Filler (27),1,-,-,-,-,N
+,14,T.04.0.056.129,Back Filler (25),1,-,-,-,-,N
+,15,T.04.0.056.130,Back Filler (22),1,-,-,-,-,N
+,16,T.04.0.056.131,Back Filler (17.5),1,-,-,-,-,N
+,17,T.04.0.056.132,Back Filler (17),1,-,-,-,-,N
+,18,T.04.0.056.133,Back Filler (14),1,-,-,-,-,N
+,19,T.04.0.049.035,Nut Bush (44),1,-,-,-,-,N
+,20,T.04.0.049.036,Nut Bush (49),1,-,-,-,-,N
+,21,T.04.0.049.037,Nut Bush (56.5),1,-,-,-,-,N
+,22,T.04.0.049.038,Nut Bush (60),1,-,-,-,-,N
+,23,T.04.0.057.033 ,Pointing Nut Bush (56),1,-,-,-,-,N
+,24,T.04.0.057.034,Pointing Nut Bush (56),1,-,-,-,-,N
+,25,T.04.0.057.035,Pointing Nut Bush (43.5),1,-,-,-,-,N
+,26,T.04.0.057.036,Pointing Nut Bush (43.5),1,-,-,-,-,N
+,27,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,28,T.04.0.022.034,Die Case Hard Plate Bush,1,-,-,-,-,N
+,29,T.04.0.044.047,K.O.Pin,1,-,-,-,-,N
+,30,T.04.0.045.039,K.O.Pin Head,1,-,-,-,-,N
+,31,T.04.0.047.002,Die Case Nut,1,-,-,-,-,M12 HHS/HHB
+,4TH  STATION,,,,,,,,
+,1,T.04.0.001.005,Trim Die Case,1,-,-,-,-,M12 HHS/HHB
+,2,T.04.0.031.003,Hex Trim Die (19),1,-,-,-,-,
+,3,T.04.0.046.006,Trim Punch Case,1,a,-,-,-,
+,4,T.04.0.062.016,Trim Punch (50),1,-,-,-,-,N
+,5,T.04.0.056.134,Trim Punch Back Filler (60),1,-,-,-,-,N
+,6,T.04.0.056.135,Trim Punch Back Filler (65),1,-,-,-,-,N
+,7,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,8,T.04.0.022.035,Die Case Hard Plate Bush,1,-,-,-,-,N
+,9,T.04.0.044.048,K.O.Pin,1,-,-,-,-,N
+,10,T.04.0.045.040,K.O.Pin Head,1,-,-,-,-,N
+, Prepared By :                                                                     Checked By:                                                                              Approved By:,,,,,,,,
+,,,,,,,,FORMAT NO:,

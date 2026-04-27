@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Drive</title>
+    
+    <link rel="icon" href="data:,">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="sidebar-overlay" class="hidden" onclick="toggleSidebar()"></div>
+    <div id="user-sidebar" class="sidebar">
+        <div style="text-align: center; margin-bottom: 30px; margin-top: 20px;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: #f8f9fa; border: 2px solid var(--primary-blue); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
+                <i class="fa-solid fa-user" style="font-size: 2.5rem; color: var(--primary-blue);"></i>
+            </div>
+            <h3 id="sidebar-name" style="color: var(--text-main); margin-bottom: 5px; font-size: 1.2rem;">Loading...</h3>
+            <p id="sidebar-phone" style="color: var(--primary-blue); font-weight: bold; margin-bottom: 5px;">...</p>
+            <p id="sidebar-email" style="color: var(--text-muted); font-size: 0.85rem;">...</p>
+        </div>
+
+        <ul class="sidebar-links mt-20">
+            <li><label class="section-label">My Documents</label></li>
+            <li><a href="javascript:void(0)" onclick="viewKYC('aadhaar')"><i class="fa-solid fa-id-card"></i> Government ID Details <span id="aadhaar-status" class="text-sm" style="margin-left: auto;">Not Uploaded</span></a></li>
+            <li><a href="javascript:void(0)" onclick="viewKYC('pan')"><i class="fa-solid fa-credit-card"></i> PAN Details <span id="pan-status" class="text-sm" style="margin-left: auto;">Not Uploaded</span></a></li>
+
+            <li><label class="section-label mt-20">Network</label></li>
+            <li><a href="javascript:void(0)" onclick="openStationsScreen()"><i class="fa-solid fa-charging-station text-green"></i> Battery Swap Hubs</a></li>
+
+            <li><label class="section-label mt-20">My Rental</label></li>
+            <li><a href="javascript:void(0)" onclick="viewMyBike()"><i class="fa-solid fa-motorcycle"></i> My Current Bike</a></li>
+
+            <li><label class="section-label mt-20">Rewards</label></li>
+            <li><a href="javascript:void(0)" onclick="openReferralModal()"><i class="fa-solid fa-gift text-orange"></i> Refer & Earn Wallet</a></li>
+
+            <li><label class="section-label mt-20">Payments</label></li>
+            <li><a href="javascript:void(0)" onclick="viewPaymentHistory()"><i class="fa-solid fa-clock-rotate-left"></i> Payment History</a></li>
+
+            <li><label class="section-label mt-20">Support</label></li>
+            <li><a href="javascript:void(0)" onclick="openModal('about-modal')"><i class="fa-solid fa-circle-info"></i> About Us</a></li>
+            <li><a href="javascript:void(0)" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i> Raise a Complaint</a></li>
+
+            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold; margin-bottom: 10px; margin-top: 20px;">CONTACT US</p>
+            <a href="tel:+917989004552" style="text-decoration: none;">
+                <div class="menu-item"><i class="fa-solid fa-phone text-blue"></i> Call Support</div>
+            </a>
+            <a href="https://wa.me/917989004552" target="_blank" style="text-decoration: none;">
+                <div class="menu-item"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> WhatsApp Support</div>
+            </a>
+            <li><a href="javascript:void(0)" onclick="viewSwapHistory()"><i class="fa-solid fa-clock-rotate-left"></i> Service
+                    History</a></li>
+            <li><a href="javascript:void(0)" onclick="openModal('help-modal')"><i class="fa-solid fa-circle-question text-blue"></i>
+                    Help & FAQ</a></li>
+
+            <li><label class="section-label mt-20">Account</label></li>
+            <li><a href="javascript:void(0)" onclick="logoutUser()" style="color: #e53e3e;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <div id="splash-screen" class="screen active-screen flex-center" style="background-color: #ffffff; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 999999;">
+        <h1 class="logo-3d" style="margin-bottom: 40px;">Easy Drive</h1>
+        <div class="premium-loader"></div>
+        <h3 style="color: var(--text-muted); margin-top: 30px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; animation: pulse 1.5s infinite;">Starting App...</h3>
+    </div>
+
+    <div id="auth-screen" class="screen flex-center">
+        <div class="card solid-card">
+            <h2 class="text-blue center-text mb-20" id="auth-title">Login</h2>
+            <div id="login-form">
+                <div class="flex-row">
+                    <div class="phone-input-wrapper">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="login-phone" placeholder="Phone Number" class="input-field phone-with-prefix" maxlength="10">
+                    </div>
+                    <button id="login-get-otp-btn" class="btn btn-disabled ml-10" onclick="sendLoginOTP()" disabled>Get OTP</button>
+                </div>
+                
+                <div id="login-otp-section" class="hidden mt-10">
+                    <input type="text" id="login-otp-input" placeholder="Enter OTP" class="input-field">
+                    <p id="login-resend-timer" class="text-sm mt-10 text-gray">Resend OTP in <span id="l-timer" class="text-main font-bold">30</span>s</p>
+                    <p id="login-resend-btn" class="text-sm mt-10 link-text hidden" onclick="sendLoginOTP()">Resend OTP</p>
+                </div>
+                <button id="login-submit-btn" class="btn btn-primary w-100 mt-20 hidden" onclick="loginUser()">Login</button>
+                <p class="center-text mt-15 link-text" onclick="toggleAuth()">Create new account</p>
+            </div>
+            
+            <div id="signup-form" class="hidden">
+                <input type="text" id="signup-name" placeholder="Full Name (As per ID)" class="input-field">
+                <input type="email" id="signup-email" placeholder="Email" class="input-field mt-10">
+                <input type="text" id="signup-referral" placeholder="Referral Code (Optional)" class="input-field mt-10" style="text-transform: uppercase;">
+                
+                <div class="flex-row mt-10">
+                    <div class="phone-input-wrapper">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="signup-phone" placeholder="Phone Number" class="input-field phone-with-prefix" maxlength="10">
+                    </div>
+                    <button id="signup-get-otp-btn" class="btn btn-disabled ml-10" onclick="sendSignupOTP()" disabled>Get OTP</button>
+                </div>
+                
+                <div id="signup-otp-section" class="hidden mt-10">
+                    <input type="text" id="signup-otp-input" placeholder="Enter OTP" class="input-field">
+                    <p id="signup-resend-timer" class="text-sm mt-10 text-gray">Resend OTP in <span id="s-timer" class="text-main font-bold">30</span>s</p>
+                    <p id="signup-resend-btn" class="text-sm mt-10 link-text hidden" onclick="sendSignupOTP()">Resend OTP</p>
+                </div>
+                <button class="btn btn-primary w-100 mt-20" onclick="signupUser()">Create Account</button>
+                <p class="center-text mt-15 link-text" onclick="toggleAuth()">Back to Login</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="upload-screen" class="screen flex-center">
+        <div class="card solid-card">
+            <h3 class="text-blue mb-20 center-text">Verify Identity</h3>
+            <label class="block-label">Enter PAN Number</label>
+            <input type="text" id="manual-pan" class="input-field mb-10" placeholder="e.g. ABCDE1234F" style="text-transform: uppercase;" maxlength="10">
+            <label class="block-label text-sm">Upload PAN Image</label>
+            <input type="file" class="input-file mb-20" accept="image/*" capture="environment" onchange="previewDoc(event, 'pan-preview')">
+            <img id="pan-preview" class="doc-preview hidden mb-20">
+            
+            <label class="block-label" style="border-top: 1px solid var(--border-color); padding-top: 15px;">Enter Government ID Number</label>
+            <input type="text" id="manual-aadhaar" class="input-field mb-10" placeholder="12 Digit Number" maxlength="12">
+            <label class="block-label text-sm">Upload ID Image</label>
+            <input type="file" class="input-file mb-10" accept="image/*" capture="environment" onchange="previewDoc(event, 'aadhaar-preview')">
+            <img id="aadhaar-preview" class="doc-preview hidden">
+            
+            <button class="btn btn-primary w-100 mt-20" onclick="saveKYC()">Verify & Continue</button>
+            <p class="center-text mt-15" onclick="logoutUser()" style="color: #e53e3e; cursor: pointer; font-weight: 600;">Cancel & Logout</p>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="screen">
+        <header class="app-header">
+            <div class="header-left flex-row">
+                <i class="fa-solid fa-bars menu-icon" onclick="toggleSidebar()"></i>
+                <h2 class="logo-text ml-10" style="margin-left: 15px;">Easy Drive</h2>
+            </div>
+            <div class="header-right flex-row">
+                <div class="location-picker"><i class="fa-solid fa-location-dot"></i> Hyderabad</div>
+            </div>
+        </header>
+
+        <div class="category-filters mb-20">
+            <button class="btn btn-outline active" onclick="filterVehicles('All', this)">All Vehicles</button>
+            <button class="btn btn-outline" onclick="filterVehicles('Home Charge', this)">Home Charge</button>
+            <button class="btn btn-outline" onclick="filterVehicles('Swapping', this)">Swapping</button>
+            <button class="btn btn-outline" onclick="showComplaintHistory(this)">Support History</button>
+        </div>
+
+
+        <div id="active-pickup-banner" class="hidden"
+            style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3); color: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border: 2px solid #1e8449;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.3rem;"><i class="fa-solid fa-key"></i> Vehicle Ready for Pickup!</h3>
+                <p style="margin: 5px 0 0 0; font-size: 1rem;">Your <strong id="pickup-banner-model"
+                        style="color: #fffbeb; font-size: 1.1rem; text-decoration: underline;"></strong> is paid for and
+                    waiting.</p>
+                <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">Please navigate to the hub and show your app to
+                    our staff.</p>
+            </div>
+            <a id="pickup-banner-map-btn" href="#" target="_blank" class="btn"
+                style="background: white; color: #27ae60; text-decoration: none; font-weight: bold; padding: 12px 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <i class="fa-solid fa-location-dot"></i> Open Google Maps
+            </a>
+        </div>
+        
+        <div class="vehicle-grid" id="main-content-grid"></div>
+    </div>
+
+    <div id="referral-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative text-center" style="max-width: 400px; border-top: 5px solid var(--btn-green);">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('referral-modal')"></i>
+            <h3 class="text-green mb-10"><i class="fa-solid fa-gift"></i> Refer & Earn</h3>
+            <p class="text-gray text-sm mb-20">Share your code and earn ₹100 Wallet Balance for every friend who signs up!</p>
+            
+            <div style="background: #f0fff4; padding: 15px; border-radius: 8px; border: 1px dashed #27ae60; margin-bottom: 20px;">
+                <p class="text-muted text-sm mb-5">Your Referral Code</p>
+                <h2 id="my-referral-code" style="color: #27ae60; letter-spacing: 2px; margin: 0;">LOADING</h2>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; background: #f8f9fa; padding: 10px; border-radius: 8px; align-items: center;">
+                <span class="text-muted font-bold">Wallet Balance:</span>
+                <span class="text-blue font-bold text-lg">₹<span id="my-wallet-balance">0</span></span>
+            </div>
+
+            <button class="btn btn-primary w-100" style="background: #25D366;" onclick="shareReferral()"><i class="fa-brands fa-whatsapp"></i> Share on WhatsApp</button>
+        </div>
+    </div>
+
+    <div id="complaint-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="max-height: 90vh; overflow-y: auto;">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('complaint-modal')"></i>
+            <h3 class="text-blue mb-20">Raise a Complaint</h3>
+            <form id="complaint-form" onsubmit="event.preventDefault(); submitComplaint();">
+                <label class="block-label">Take a live photo</label>
+                <input type="file" id="comp-img" class="input-file mb-10" accept="image/*" capture="environment" onchange="previewDoc(event, 'comp-img-preview')" required>
+                <img id="comp-img-preview" class="doc-preview hidden mb-20">
+                <label class="block-label">Describe your issue</label>
+                <textarea id="comp-issue" class="input-field" style="height: 100px; resize: none;" required></textarea>
+                <button type="submit" class="btn btn-primary w-100 mt-20">Submit Complaint</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="image-modal" class="modal flex-center hidden" onclick="closeModals()">
+        <img id="expanded-img" src="" alt="Expanded">
+    </div>
+
+    <div id="booking-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="width: 95%; max-width: 400px; border-top: 5px solid var(--primary-blue);">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('booking-modal')"></i>
+            
+            <div id="booking-modal-content">
+                <img id="modal-bike-img" src="" style="width: 100%; height: 160px; object-fit: contain; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border-color); background: #fff;">
+                
+                <h2 id="modal-bike-title" style="color: var(--text-main); margin-bottom: 5px;"></h2>
+                <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                    <span class="text-sm"><i class="fa-solid fa-bolt text-blue"></i> Range: <strong id="modal-bike-range"></strong></span>
+                    <span class="text-sm"><i class="fa-solid fa-gauge-high text-blue"></i> Top Speed: <strong id="modal-bike-speed"></strong></span>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                    <h4 style="margin-bottom: 12px; color: var(--text-main); font-size: 0.95rem;">Payment Breakdown</h4>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Base Rent / Day</span>
+                        <span style="color: var(--text-main); font-weight: bold;">₹<span id="breakdown-rent"></span></span>
+                    </div>
+
+                    <div id="fleet-discount-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--btn-green); font-size: 0.9rem; font-weight: bold;"><i class="fa-solid fa-tag"></i> Special Discount</span>
+                        <span style="color: var(--btn-green); font-weight: bold;">- ₹<span id="breakdown-discount"></span></span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Security Deposit</span>
+                        <span style="color: var(--text-main); font-weight: bold;">₹<span id="breakdown-deposit"></span></span>
+                    </div>
+                    
+                    <div id="promo-display-row" class="hidden" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--btn-orange); font-size: 0.9rem; font-weight: bold;">Promo Code</span>
+                        <span style="color: var(--btn-orange); font-weight: bold;">- ₹<span id="breakdown-promo">0</span></span>
+                    </div>
+
+                    <div id="promo-input-container" style="display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                        <input type="text" id="promo-code-input" class="input-field" placeholder="Have a Promo Code?" style="flex: 1; padding: 8px; text-transform: uppercase; border-color: #cbd5e1;">
+                        <button class="btn btn-outline" onclick="applyPromoCode()" style="padding: 8px 15px; font-weight: bold;">Apply</button>
+                    </div>
+                    <p id="promo-message" style="font-size: 0.8rem; font-weight: bold; margin-top: 5px;"></p>
+                    
+                    <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 12px 0;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-main); font-weight: bold;">Total Payable</span>
+                        <span style="color: var(--primary-blue); font-size: 1.3rem; font-weight: bold;">₹<span id="checkout-price"></span></span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100" onclick="processPayment()" style="font-size: 1.1rem; padding: 12px;"><i class="fa-solid fa-lock"></i> Proceed to Pay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="renewal-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="width: 95%; max-width: 400px; border-top: 5px solid var(--btn-orange);">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('renewal-modal')"></i>
+            <h3 style="color: var(--btn-orange); margin-bottom: 10px;"><i class="fa-solid fa-rotate"></i> Renew Subscription</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Extend your rental for <strong id="renewal-bike-name" style="color: var(--text-main);"></strong>.</p>
+
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Standard Rent</span>
+                    <span style="color: var(--text-main); font-weight: bold;">₹<span id="renewal-rent"></span></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Security Deposit</span>
+                    <span style="color: var(--btn-green); font-weight: bold;">Already Paid ✅</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Discount</span>
+                    <span style="color: #94a3b8; font-weight: bold;">Not Applicable</span>
+                </div>
+                
+                <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 12px 0;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-main); font-weight: bold;">Total Payable</span>
+                    <span style="color: var(--primary-blue); font-size: 1.3rem; font-weight: bold;">₹<span id="renewal-total"></span></span>
+                </div>
+            </div>
+            <button id="confirm-renewal-btn" class="btn w-100" style="background: var(--btn-orange); color: white; padding: 12px; font-size: 1.1rem;"><i class="fa-solid fa-bolt"></i> Pay & Renew</button>
+        </div>
+    </div>
+
+    <div id="payment-history-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="width: 95%; max-width: 500px; padding-bottom: 20px;">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('payment-history-modal')"></i>
+            <h3 class="text-blue mb-20"><i class="fa-solid fa-receipt"></i> Payment History</h3>
+            <div id="user-payment-list" style="display: flex; flex-direction: column; gap: 15px; max-height: 60vh; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div id="my-bike-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="width: 95%; max-width: 400px; max-height: 90vh; overflow-y: auto;">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('my-bike-modal')"></i>
+            <h3 class="text-blue mb-15"><i class="fa-solid fa-motorcycle"></i> Active Vehicle</h3>
+            <div id="my-bike-content" class="hidden">
+                <img id="my-bike-img" src="" style="width: 100%; height: 180px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+                <h2 id="my-bike-model" style="margin-bottom: 5px;"></h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">
+                    <span id="my-bike-type" style="background: #e2e8f0; color: #333; padding: 3px 8px; border-radius: 4px; margin-right: 5px; font-weight: bold;"></span>
+                    <i class="fa-solid fa-bolt text-blue"></i> <span id="my-bike-range"></span>
+            
+                </p>
+
+                <div style="background: #1a202c; padding: 20px; border-radius: 12px; margin-bottom: 20px; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 0.85rem; color: #a0aec0; font-weight: bold; letter-spacing: 1px;"><i class="fa-solid fa-satellite-dish" style="color: #4ade80; animation: pulse 2s infinite;"></i> LIVE TELEMATICS</span>
+                        <span id="my-bike-motor" style="background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(74, 222, 128, 0.4);">MOTOR ACTIVE</span>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end; gap: 15px;">
+                        <div style="width: 50px; height: 90px; border: 3px solid #cbd5e1; border-radius: 6px; position: relative; padding: 2px; box-sizing: border-box;">
+                            <div style="position: absolute; top: -6px; left: 15px; width: 14px; height: 4px; background: #cbd5e1; border-radius: 2px;"></div>
+                            <div id="live-battery-fill" style="position: absolute; bottom: 2px; left: 2px; width: calc(100% - 4px); height: 85%; background: linear-gradient(to top, #22c55e, #10b981); border-radius: 2px; transition: height 1s ease;"></div>
+                        </div>
+                        
+                        <div style="flex: 1;">
+                            <h2 style="margin: 0; font-size: 2.5rem; line-height: 1;"><span id="live-battery-text">85</span><span style="font-size: 1.2rem; color: #a0aec0;">%</span></h2>
+                            <p style="margin: 5px 0 0 0; color: #cbd5e1; font-size: 0.9rem;"><i class="fa-solid fa-bolt text-orange"></i> Est. Range: <strong id="live-range-text" style="color: white;">42 km</strong></p>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                    <p class="text-sm mb-10"><strong class="text-gray">Payment Date:</strong> <span id="my-bike-paydate"></span></p>
+                    <p class="text-sm mb-10"><strong class="text-gray">Handover Date:</strong> <span id="my-bike-handeddate"></span></p>
+                    <p class="text-sm mb-10"><strong class="text-gray">Due Date:</strong> <span id="my-bike-duedate" class="text-blue font-bold"></span></p>
+                    <p class="text-sm mb-10"><strong class="text-gray">Renewals:</strong> <span id="my-bike-renewals"></span></p>
+                    <p class="text-sm"><strong class="text-gray">Status:</strong> <span id="my-bike-status" class="text-green font-bold"></span></p>
+                </div>
+                <div id="my-bike-map-container" class="hidden" style="margin-top: 15px;">
+                    <a id="my-bike-map-link" href="#" target="_blank" class="btn w-100"
+                        style="background: #e6ffed; color: #27ae60; border: 2px solid #27ae60; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1.1rem;">
+                        <i class="fa-solid fa-map-location-dot"></i> Get Pickup Directions
+                    </a>
+                </div>
+                <button id="renewal-btn" class="btn w-100" style="padding: 12px; font-weight: bold;">Renew Subscription</button>
+            </div>
+            <div id="no-bike-content" class="center-text hidden" style="padding: 30px 10px;">
+                <i class="fa-solid fa-triangle-exclamation text-gray mb-10" style="font-size: 3rem;"></i>
+                <p class="text-gray">You do not have any active vehicle rentals right now.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-alert-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center; border-top: 4px solid var(--primary-blue);">
+            <div style="margin-bottom: 20px;">
+                <i id="custom-alert-icon" class="fa-solid fa-bell" style="font-size: 3.5rem; color: var(--primary-blue); margin-bottom: 15px;"></i>
+                <h3 id="custom-alert-title" style="margin: 0; color: var(--text-main); font-size: 1.4rem;">Alert</h3>
+                <p id="custom-alert-message" style="color: var(--text-muted); margin-top: 10px; font-size: 0.95rem; line-height: 1.4; white-space: pre-line;">Message goes here.</p>
+            </div>
+            <button class="btn btn-primary w-100" id="custom-alert-btn" onclick="closeCustomAlert()" style="font-size: 1.1rem; padding: 12px;">OK, Got it</button>
+        </div>
+    </div>
+
+    <div id="pickup-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center; border-top: 4px solid #27ae60;">
+            <div style="margin-bottom: 20px;">
+                <i class="fa-solid fa-location-dot" style="font-size: 3.5rem; color: #27ae60; margin-bottom: 15px;"></i>
+                <h3 style="margin: 0; color: var(--text-main); font-size: 1.4rem;">Vehicle Ready!</h3>
+                <p style="color: var(--text-muted); margin-top: 10px; font-size: 0.95rem; line-height: 1.4;">
+                    Your <strong id="pickup-bike-name" style="color: var(--primary-blue);"></strong> is paid for and waiting for you. 
+                    <br><br>Please head to the location and show this app to our staff to receive your keys.
+                </p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a id="pickup-map-btn" href="#" target="_blank" class="btn btn-primary w-100" style="background: #27ae60; text-decoration: none; font-size: 1.1rem; padding: 12px; display: inline-block; box-sizing: border-box;">
+                    <i class="fa-solid fa-map-location-dot"></i> Open Google Maps
+                </a>
+                <button class="btn btn-outline w-100" onclick="document.getElementById('pickup-modal').classList.add('hidden')" style="font-size: 1rem; border-color: #cbd5e0; color: #4a5568;">
+                    Dismiss for now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="about-modal" class="modal flex-center hidden" onclick="closeModals()">
+        <div class="card solid-card relative about-card-content" onclick="event.stopPropagation()">
+            <div class="close-btn-wrapper" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></div>
+            
+            <div class="thank-you-banner">
+                <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&h=250" alt="Thank You" class="banner-img">
+            </div>
+            
+            <div class="about-body">
+                <div class="person-container">
+                    <img src="https://ui-avatars.com/api/?name=Chennakesava+Rao&background=007bff&color=fff&size=150" alt="Founder" class="person-img">
+                    <h2 class="text-blue mt-15 center-text" style="letter-spacing: 1px;">Easy Drive Hyderabad</h2>
+                    <p class="text-gray mt-5 center-text" style="font-size: 1.1rem;">Chennakesava Rao B.<br><span class="text-blue" style="font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Founder</span></p>
+                </div>
+                
+                <div class="about-grid mt-30 mb-20">
+                    <div class="about-section">
+                        <h4 class="text-main mb-10" style="font-size: 1.1rem;"><i class="fa-solid fa-leaf text-green mr-10"></i>Sustainable Mobility</h4>
+                        <p class="text-gray about-text">Easy Drive is dedicated to revolutionizing urban transit in Hyderabad through zero-emission Electric Vehicles.</p>
+                    </div>
+                    <div class="team-section">
+                        <h4 class="text-main mb-10" style="font-size: 1.1rem;"><i class="fa-solid fa-users text-blue mr-10"></i>Our Team</h4>
+                        <p class="text-gray about-text">Driven by innovation and a passion for sustainability, our dedicated team ensures your green journey is smooth.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="stations-screen" class="screen">
+    <header class="app-header">
+        <div class="header-left flex-row">
+            <i class="fa-solid fa-arrow-left menu-icon" onclick="goToScreen('dashboard-screen')"></i>
+            <h2 class="logo-text ml-10" style="margin-left: 15px;">Swap Hubs</h2>
+        </div>
+    </header>
+    
+    <div style="padding: 20px;">
+        <div id="swap-map" style="height: 300px; width: 100%; border-radius: 12px; border: 2px solid var(--primary-blue); margin-bottom: 20px; z-index: 1;"></div>
+        
+        <div id="user-stations-grid" style="display: flex; flex-direction: column; gap: 15px;">
+            </div>
+    </div>
+</div>
+
+    <div id="global-loader" class="modal flex-center hidden">
+        <div class="premium-loader" style="border-color: rgba(255,255,255,0.2); border-top-color: #fff; border-bottom-color: #fff;"></div>
+        <p style="color: #fff; margin-top: 20px; font-weight: bold;" id="loader-text">Processing...</p>
+    </div>
+
+
+    <div id="swap-action-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center; border-top: 4px solid #2ecc71;">
+            <div style="margin-bottom: 20px;">
+                <i class="fa-solid fa-charging-station" style="font-size: 3.5rem; color: #2ecc71; margin-bottom: 15px; animation: pulse 2s infinite;"></i>
+                <h3 style="margin: 0; color: var(--text-main); font-size: 1.4rem;">Navigating to Hub</h3>
+                <p style="color: var(--text-muted); margin-top: 10px; font-size: 0.95rem;">Destination: <strong id="swap-dest-name" style="color: var(--primary-blue);"></strong></p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a id="swap-maps-btn" href="#" target="_blank" class="btn btn-outline w-100" style="border-color: #3182ce; color: #3182ce; padding: 12px; font-size: 1rem;">
+                    <i class="fa-solid fa-map-location-dot"></i> Open Google Maps
+                </a>
+                <button class="btn btn-primary w-100" style="background: #2ecc71; padding: 12px; font-size: 1.1rem;" onclick="markStationReached()">
+                    <i class="fa-solid fa-check-circle"></i> I Have Reached
+                </button>
+                <button class="btn w-100" style="background: transparent; color: #e53e3e; text-decoration: underline;" onclick="document.getElementById('swap-action-modal').classList.add('hidden')">
+                    Cancel Trip
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="swap-history-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="width: 95%; max-width: 450px;">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('swap-history-modal')"></i>
+            <h3 class="text-blue mb-20"><i class="fa-solid fa-history"></i> Swap History</h3>
+            <div id="swap-history-list"
+                style="display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto;">
+            </div>
+        </div>
+    </div>
+    
+    <div id="help-modal" class="modal flex-center hidden">
+        <div class="card solid-card relative" style="width: 95%; max-width: 500px; max-height: 85vh; overflow-y: auto;">
+            <i class="fa-solid fa-xmark close-btn" onclick="closeAndReturnToSidebar('help-modal')"></i>
+            <h3 class="text-blue mb-20"><i class="fa-solid fa-life-ring"></i> Help Center</h3>
+    
+            <div class="faq-container">
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">What if my bike won't start? <i class="fa-solid fa-chevron-down"></i></div>
+                    <div class="faq-answer">Check if the side-stand is down; most EVs have a safety cut-off. Ensure the kill
+                        switch is 'On' and the battery is above 10%.</div>
+                </div>
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">How do I charge at home? <i class="fa-solid fa-chevron-down"></i></div>
+                    <div class="faq-answer">Use the provided 5A charger. Connect the charger to the bike first, then plug
+                        into a standard 3-pin wall socket.</div>
+                </div>
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">What is the security deposit? <i class="fa-solid fa-chevron-down"></i></div>
+                    <div class="faq-answer">The ₹1000 deposit is fully refundable. It is processed within 7 working days
+                        once the vehicle is returned in good condition.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="app.js?v=4"></script>
+</body>
+</html>

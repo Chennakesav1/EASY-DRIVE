@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BoltCorp - Secure Admin Panel</title>
+    <style>
+        body { font-family: sans-serif; background: #222; color: #333; padding: 50px; display: flex; justify-content: center; }
+        .admin-container { background: #fff; padding: 40px; border-radius: 10px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { text-align: center; color: #222; margin-bottom: 20px; }
+        input, textarea, button { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background: #ff9900; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; border: none; }
+        button:hover { background: #e68a00; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        
+        <div id="loginSection">
+            <h2>Admin Login</h2>
+            <input type="text" id="adminUser" placeholder="Username" required>
+            <input type="password" id="adminPass" placeholder="Password" required>
+            <button onclick="adminLogin()">Login</button>
+            <p id="loginMsg" style="color: red; text-align: center; font-weight: bold;"></p>
+        </div>
+
+        <div id="uploadSection" class="hidden">
+            <h2>Upload New Bolt</h2>
+            <button onclick="adminLogout()" style="background: #ff4444; margin-bottom: 20px;">Logout</button>
+            
+            <form id="uploadForm">
+                <input type="text" id="name" placeholder="Bolt Name (e.g., Hex Bolt Type A)" required>
+                <input type="text" id="quality" placeholder="Quality (e.g., Stainless Steel 304)" required>
+                <input type="text" id="size" placeholder="Size (e.g., M8 x 20mm)" required>
+                <input type="text" id="weight" placeholder="Weight (e.g., 15g)" required>
+                <input type="number" id="price" placeholder="Price (₹)" required>
+                <textarea id="desc" placeholder="Product Description..." rows="3" required></textarea>
+                
+                <label style="font-size: 14px; font-weight: bold; display:block; margin-bottom: 5px;">Upload Product Image:</label>
+                <input type="file" id="image" accept="image/*" required>
+                
+                <button type="submit" style="background: #222;">Publish to Website</button>
+            </form>
+            <p id="statusMsg" style="text-align: center; font-weight: bold; margin-top: 15px;"></p>
+        </div>
+
+    </div>
+
+    <script>
+        // Check if already logged in
+        let adminToken = localStorage.getItem('boltcorp_admin_token');
+        if (adminToken) {
+            showUploadSection();
+        }
+
+        function showUploadSection() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('uploadSection').classList.remove('hidden');
+        }
+
+        async function adminLogin() {
+            const user = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+            const msg = document.getElementById('loginMsg');
+            
+            msg.innerText = "Authenticating...";
+
+            try {
+                const res = await fetch('http://localhost:3000/api/auth/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem('boltcorp_admin_token', data.token);
+                    adminToken = data.token;
+                    msg.innerText = "";
+                    showUploadSection();
+                } else {
+                    msg.innerText = "Invalid credentials!";
+                }
+            } catch (err) {
+                msg.innerText = "Server error. Is Node.js running?";
+            }
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('boltcorp_admin_token');
+            adminToken = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('statusMsg');
+            msg.innerText = "Uploading...";
+            msg.style.color = "#333";
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('quality', document.getElementById('quality').value);
+            formData.append('size', document.getElementById('size').value);
+            formData.append('weight', document.getElementById('weight').value);
+            formData.append('price', document.getElementById('price').value);
+            formData.append('desc', document.getElementById('desc').value);
+            formData.append('image', document.getElementById('image').files[0]);
+
+            try {
+                const response = await fetch('http://localhost:3000/api/products', {
+                    method: 'POST',
+                    headers: {
+                        // VERY IMPORTANT: We send the token here to prove we are the admin!
+                        'Authorization': 'Bearer ' + adminToken 
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    msg.innerText = "✅ Product Successfully Published!";
+                    msg.style.color = "green";
+                    document.getElementById('uploadForm').reset(); 
+                } else {
+                    msg.innerText = "❌ Upload Failed: " + (result.message || "Unauthorized");
+                    msg.style.color = "red";
+                    if(response.status === 401 || response.status === 403) adminLogout(); // Force logout if token expired
+                }
+            } catch (err) {
+                msg.innerText = "❌ Server Error.";
+                msg.style.color = "red";
+            }
+        });
+    </script>
+</body>
+</html>

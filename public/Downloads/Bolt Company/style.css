@@ -1,0 +1,698 @@
+/* General Resets & Variables */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #c4c4c7; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
+
+/* Navigation */
+nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: #222; color: #fff; position: sticky; top: 0; z-index: 100; }
+.logo { display: flex; align-items: center; transition: transform 0.3s ease; cursor: pointer; }
+.logo img, img.logo { height: 50px; width: auto; object-fit: contain; }
+.logo:hover { transform: scale(1.05); }
+
+.nav-links { list-style: none; display: flex; align-items: center; gap: 20px; }
+.nav-links a { color: #fff; text-decoration: none; transition: color 0.3s; }
+.nav-links a:hover { color: #ff9900; }
+.nav-btn { background: #ff9900; border: none; padding: 10px 15px; color: #fff; cursor: pointer; font-weight: bold; border-radius: 5px; transition: 0.3s; }
+.nav-btn:hover { background: #e68a00; transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+/* Buttons & Hover Effects */
+.hover-btn { background: #222; color: #fff; border: none; padding: 10px 20px; cursor: pointer; transition: all 0.3s ease; border-radius: 5px; }
+.hover-btn:hover { background: #ff9900; transform: translateY(-3px) scale(1.05); box-shadow: 0 5px 15px rgba(255,153,0,0.4); }
+
+/* Slider */
+.slider { height: 60vh; width: 100%; background-size: cover; background-position: center; transition: background-image 1s ease-in-out; }
+
+/* Sections & Grids */
+section { padding: 60px 50px; text-align: center; }
+h2 { margin-bottom: 30px; font-size: 32px; color: #222; }
+.directors-grid, .bolt-grid, .staff-grid, .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 20px; }
+
+/* 3D Animated Cards */
+.card { 
+    background: #fff; padding: 20px; border-radius: 10px; perspective: 1000px; 
+    transform-style: preserve-3d; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; will-change: transform;
+}
+.card img { 
+    width: 100%; height: 200px; object-fit: cover; border-radius: 5px; 
+    margin-bottom: 15px; transform: translateZ(30px); transition: transform 0.3s ease;
+}
+.card:hover img { transform: translateZ(50px) scale(1.05); }
+
+/* Big Banner */
+/* Big Banner */
+.big-banner { 
+    height: 400px; /* I made it slightly taller (from 300px to 400px) so you can see more of the photo! */
+    
+    /* The linear-gradient adds a dark tint over the image so the text stays readable */
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('./images/teamworkers.jpg') center/cover no-repeat; 
+    
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white; 
+    font-size: 40px; 
+    font-weight: bold; 
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+    text-align: center;
+}
+/* Ensure the banner text scales nicely and is ORANGE */
+.big-banner h2 {
+    font-size: 40px;
+    margin: 0;
+    padding: 0 20px;
+    color: #ff9900; /* This makes the text orange! */
+}
+/* --- Big Banner Typing Cursor --- */
+.typing-cursor {
+    display: inline-block;
+    width: 4px;
+    height: 1em; /* Matches the height of the h2 text */
+    background-color: #ff9900; /* Orange cursor */
+    margin-left: 6px;
+    vertical-align: text-bottom;
+    animation: blinkCursor 0.8s step-end infinite;
+}
+
+@keyframes blinkCursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Ensure the banner text scales nicely on mobile */
+.big-banner h2 {
+    font-size: 40px;
+    margin: 0;
+    padding: 0 20px;
+}
+
+@media screen and (max-width: 768px) {
+    .big-banner h2 {
+        font-size: 28px; /* Slightly smaller so it fits nicely on phones */
+    }
+}
+/* --- New Hero Section --- */
+.hero-section {
+    height: 80vh; /* Makes the image take up 80% of the screen height */
+    
+    /* Adds a dark overlay so your white text is always readable! */
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('./images/banner1.jpg') center/cover no-repeat;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 20px;
+}
+
+.hero-content {
+    max-width: 900px;
+    color: #fff;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+.hero-content h1 {
+    font-size: 52px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    line-height: 1.2;
+}
+
+#dynamic-service-text {
+    transition: opacity 0.5s ease; /* Makes the changing text fade smoothly */
+}
+
+.hero-content p {
+    font-size: 20px;
+    color: #ddd;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hero-btn {
+    font-size: 18px;
+    padding: 15px 35px;
+}
+
+/* The transparent button with the orange outline */
+.hero-btn-outline {
+    background: transparent;
+    color: #ff9900;
+    border: 2px solid #ff9900;
+    padding: 13px 33px; 
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.hero-btn-outline:hover {
+    background: #ff9900;
+    color: #fff;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 5px 15px rgba(255,153,0,0.4);
+}
+
+/* --- Hero Button Device Swapping --- */
+/* By default (on laptops/desktops), show the Email buttons and hide the Phone buttons */
+.desktop-btns {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.mobile-btns {
+    display: none;
+}
+
+/* Simple fade-in animation for when the page loads */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Contact */
+.contact-container { display: flex; gap: 40px; text-align: left; }
+.contact-info, .contact-form { flex: 1; }
+.contact-form input, .contact-form textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; }
+
+/* Modals */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; align-items: center; justify-content: center; }
+.modal-content { background: #fff; padding: 40px; border-radius: 10px; width: 80%; max-width: 600px; position: relative; text-align: center; }
+.shop-content { max-width: 1100px; max-height: 85vh; overflow-y: auto; }
+.close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #555; transition: 0.3s; }
+.close-btn:hover { color: #ff9900; }
+.cart-summary { margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+
+/* Footer */
+footer { background: #222; color: #fff; text-align: center; padding: 30px; }
+.social-media a { color: #ff9900; margin: 0 10px; text-decoration: none; font-weight: bold; transition: 0.3s; }
+.social-media a:hover { color: #fff; }
+
+/* --- Achievements Section --- */
+.achievements-section {
+    background-color: #222;
+    color: #fff;
+    padding: 60px 50px;
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    border-radius: 10px;
+}
+.achievements-section h2 { color: #fff; }
+.achievements-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin-top: 40px; }
+.achievement-card { padding: 20px; }
+.achievement-card h3 { display: inline-block; font-size: 56px; color: #ff9900; margin-bottom: 10px; }
+.achievement-card span { font-size: 56px; color: #ff9900; font-weight: bold; }
+.achievement-card p { font-size: 18px; color: #ccc; text-transform: uppercase; letter-spacing: 1px; }
+
+/* --- Timeline / Company Growth Section --- */
+.timeline-section { padding: 60px 50px; background-color: #f9f9f9; text-align: center; margin-bottom: 50px; border-radius: 10px; }
+.timeline { position: relative; max-width: 800px; margin: 0 auto; text-align: left; }
+.timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 4px; background: #ff9900; }
+.timeline-item { position: relative; padding-left: 60px; margin-bottom: 40px; transition: transform 0.3s ease; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot { position: absolute; left: 10px; top: 5px; width: 16px; height: 16px; background: #222; border: 4px solid #ff9900; border-radius: 50%; z-index: 2; }
+.timeline-date { font-size: 28px; font-weight: bold; color: #ff9900; margin-bottom: 5px; }
+.timeline-content { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 4px solid #222; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+.timeline-item:hover { transform: translateX(5px); }
+.timeline-item:hover .timeline-content { box-shadow: 0 6px 15px rgba(255,153,0,0.2); border-left-color: #ff9900; }
+.timeline-content h3 { color: #222; margin-bottom: 10px; font-size: 20px; }
+.timeline-content p { color: #555; font-size: 15px; line-height: 1.6; }
+
+/* --- Careers & Multi-Step Form Styling --- */
+.careers-container { max-width: 800px; margin: 0 auto; }
+.job-scroll-box { max-height: 300px; overflow-y: auto; background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 30px; text-align: left; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+.job-card { padding: 15px 0; border-bottom: 1px solid #eee; }
+.job-card:last-child { border-bottom: none; }
+.job-card h3 { color: #ff9900; margin-bottom: 5px; font-size: 20px; }
+.job-desc { color: #555; font-size: 14px; margin-top: 8px; }
+.apply-btn { font-size: 18px; padding: 15px 40px; }
+.form-input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 16px; }
+.step-indicator { display: flex; justify-content: space-between; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+.step { color: #aaa; font-weight: bold; font-size: 14px; }
+.step.active { color: #ff9900; }
+.preview-box { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; border-radius: 5px; font-size: 14px; line-height: 1.6; color: #333; }
+
+/* =========================================
+   RESPONSIVE DESIGN (Media Queries)
+   ========================================= */
+
+/* --- Base Styles for Menu --- */
+.hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.hamburger span { width: 25px; height: 3px; background: #fff; border-radius: 3px; transition: all 0.3s ease; }
+.mobile-back-btn { display: none; }
+
+/* -----------------------------------------
+   TABLET & MOBILE MENU (Max-width: 1024px)
+   ----------------------------------------- */
+@media screen and (max-width: 1024px) {
+    nav { padding: 20px 30px; align-items: center; }
+    section, .achievements-section, .timeline-section { padding: 50px 30px; }
+    .big-banner { height: 250px; font-size: 32px; }
+    .contact-container { gap: 20px; }
+    .modal-content { width: 90%; }
+
+    /* Show hamburger & setup slide-out */
+    .hamburger { display: flex; z-index: 1001; }
+    .nav-links {
+        position: fixed; top: 0; right: -100%; width: 250px; height: 100vh;
+        background: #222; flex-direction: column; align-items: flex-start;
+        padding: 80px 30px 30px 30px; transition: right 0.4s ease-in-out;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.5); z-index: 1000; gap: 0;
+    }
+    .nav-links.nav-active { right: 0; }
+
+    .mobile-back-btn {
+        display: block; color: #ff9900; font-weight: bold; cursor: pointer;
+        font-size: 18px; margin-bottom: 20px; padding-bottom: 15px;
+        border-bottom: 1px solid #444; width: 100%; transition: color 0.3s;
+    }
+    .mobile-back-btn:hover { color: #fff; }
+    .nav-links li { width: 100%; margin-bottom: 15px; }
+    .nav-btn { width: 100%; text-align: center; }
+}
+
+/* -----------------------------------------
+   MOBILE SCREENS (Max-width: 768px)
+   ----------------------------------------- */
+@media screen and (max-width: 768px) {
+    section, .achievements-section, .timeline-section { padding: 40px 15px; }
+    h2 { font-size: 26px; margin-bottom: 20px; }
+    
+    .directors-grid, .bolt-grid, .staff-grid, .shop-grid, .achievements-grid { grid-template-columns: 1fr; gap: 20px; }
+    .big-banner { height: 200px; font-size: 24px; padding: 0 20px; text-align: center; }
+    .contact-container { flex-direction: column; gap: 30px; }
+    .modal-content { padding: 25px 20px; width: 95%; }
+    .cart-summary { flex-direction: column; gap: 15px; text-align: center; }
+    .close-btn { top: 10px; right: 15px; }
+    
+    /* Timeline adjustments for mobile */
+    .timeline::before { left: 10px; }
+    .timeline-dot { left: 0px; }
+    .timeline-item { padding-left: 40px; }
+    /* Add this INSIDE your @media screen and (max-width: 768px) { ... } block */
+    .desktop-btns {
+        display: none; /* Hide email buttons on phones */
+    }
+    .mobile-btns {
+        display: flex; /* Show phone/SMS buttons on phones */
+        gap: 20px;
+        justify-content: center;
+        flex-direction: column; /* Stacks the buttons neatly on small screens */
+    }
+}
+
+
+/* --- Enhanced Directors Section --- */
+.director-card {
+    border-top: 4px solid transparent;
+    overflow: hidden; 
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.director-card:hover {
+    border-top: 4px solid #ff9900;
+    box-shadow: 0 15px 30px rgba(255, 153, 0, 0.15);
+}
+
+.img-wrapper {
+    width: 100%;
+    height: 200px;
+    overflow: hidden; /* Keeps the zoom inside the box */
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.director-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%); /* Starts Black & White */
+    transition: transform 0.6s ease, filter 0.6s ease;
+    margin-bottom: 0; 
+    transform: translateZ(0); /* Prevents 3D clipping */
+}
+
+.director-card:hover img {
+    filter: grayscale(0%); /* Transitions to Full Color */
+    transform: scale(1.1); /* Smoothly zooms in */
+}
+
+.director-role {
+    color: #ff9900 !important;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+/* --- Scroll Reveal Animations --- */
+.reveal-up {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal-up.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+
+/* --- Floating WhatsApp Button --- */
+.whatsapp-float {
+    position: fixed;
+    width: 65px;
+    height: 65px;
+    bottom: 30px;
+    right: 30px;
+    background-color: #25d366; /* Official WhatsApp Green */
+    color: #fff;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Keeps it on top of everything else */
+    transition: all 0.3s ease;
+    animation: pulse-wa 2s infinite; /* Adds the pulse effect */
+}
+
+/* The SVG Icon Styling */
+.whatsapp-icon {
+    width: 35px;
+    height: 35px;
+    fill: #ffffff; /* Makes the icon white */
+    margin-left: 2px; /* Centers the icon perfectly */
+    margin-top: 2px;
+}
+
+/* Hover Effects */
+.whatsapp-float:hover {
+    transform: scale(1.1);
+    background-color: #128C7E; /* Slightly darker green on hover */
+    box-shadow: 2px 2px 20px rgba(37, 211, 102, 0.6);
+    animation: none; /* Stops pulsing when hovering */
+}
+
+/* The Pulse Animation Keyframes */
+@keyframes pulse-wa {
+    0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+/* Shift it slightly on mobile phones so it doesn't block other elements */
+@media screen and (max-width: 768px) {
+    .whatsapp-float {
+        width: 55px;
+        height: 55px;
+        bottom: 20px;
+        right: 20px;
+    }
+    .whatsapp-icon {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+
+
+
+/* --- Process Section --- */
+.process-section { background-color: #fff; padding: 60px 50px; text-align: center; }
+.process-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+.process-card { background: #f9f9f9; padding: 40px 20px; border-radius: 10px; border-bottom: 4px solid #ff9900; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.process-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+.process-icon { font-size: 50px; margin-bottom: 15px; }
+.process-card h3 { color: #222; margin-bottom: 10px; font-size: 20px; }
+.process-card p { color: #555; font-size: 14px; line-height: 1.6; }
+
+/* --- FAQ Section --- */
+.faq-section { background-color: #222; color: #fff; padding: 80px 50px; text-align: center; }
+.faq-section h2 { color: #fff; margin-bottom: 40px; }
+.faq-container { max-width: 800px; margin: 0 auto; text-align: left; }
+.faq-item { margin-bottom: 15px; border-bottom: 1px solid #444; }
+
+/* The clickable question button */
+.faq-question { 
+    width: 100%; 
+    background: none; 
+    border: none; 
+    color: #ff9900; 
+    font-size: 18px; 
+    font-weight: bold; 
+    text-align: left; 
+    padding: 20px 0; 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    transition: color 0.3s; 
+}
+.faq-question:hover { color: #fff; }
+
+/* The hidden answer box */
+.faq-answer { 
+    max-height: 0; 
+    overflow: hidden; 
+    transition: max-height 0.4s ease-out; 
+}
+.faq-answer p { padding-bottom: 20px; color: #ccc; line-height: 1.6; font-size: 16px; }
+
+/* Styles applied when JavaScript opens the FAQ */
+.faq-item.active .faq-answer { max-height: 200px; } 
+.faq-item.active .faq-question .faq-icon { transform: rotate(45deg); color: #fff; }
+.faq-icon { font-size: 28px; transition: transform 0.3s ease, color 0.3s ease; }
+
+@media screen and (max-width: 768px) {
+    .faq-question { font-size: 16px; }
+}
+
+
+
+
+/* --- 1. Client Logo Marquee --- */
+.clients-section { background-color: #fff; padding: 40px 50px 60px 50px; text-align: center; border-top: 1px solid #eee; }
+.marquee-container { width: 100%; overflow: hidden; position: relative; display: flex; align-items: center; }
+
+/* Adds a fade effect to the left and right edges so logos smoothly disappear */
+.marquee-container::before, .marquee-container::after {
+    content: ""; position: absolute; top: 0; width: 100px; height: 100%; z-index: 2;
+}
+.marquee-container::before { left: 0; background: linear-gradient(to right, #fff 0%, transparent 100%); }
+.marquee-container::after { right: 0; background: linear-gradient(to left, #fff 0%, transparent 100%); }
+
+.marquee-track {
+    display: flex;
+    gap: 50px;
+    width: max-content;
+    animation: scrollMarquee 20s linear infinite; /* Adjust 20s to make it faster or slower */
+}
+.marquee-track:hover { animation-play-state: paused; /* Pauses when user hovers */ }
+
+.client-logo {
+    font-size: 24px; font-weight: bold; color: #aaa; text-transform: uppercase;
+    padding: 0 30px; transition: color 0.3s ease; cursor: default;
+}
+.client-logo:hover { color: #ff9900; } /* Lights up orange when hovered */
+
+@keyframes scrollMarquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } /* Moves exactly half the width to seamlessly loop */
+}
+
+/* --- 2. Certifications Section --- */
+.certs-section { background-color: #f9f9f9; padding: 60px 50px; text-align: center; }
+.certs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto; }
+.cert-card { background: #fff; padding: 30px; border-radius: 8px; border: 1px solid #eee; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.cert-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: #ff9900; }
+.cert-icon { font-size: 45px; margin-bottom: 15px; }
+.cert-card h4 { color: #222; font-size: 20px; margin-bottom: 10px; }
+.cert-card p { color: #666; font-size: 14px; line-height: 1.6; }
+
+/* --- 3. Testimonials Section --- */
+.testimonials-section { background-color: #222; color: #fff; padding: 80px 50px; text-align: center; }
+.testimonials-section h2 { color: #fff; margin-bottom: 50px; }
+.test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+.test-card { background: #333; padding: 40px 30px; border-radius: 10px; position: relative; text-align: left; }
+.test-card::before { content: '"'; position: absolute; top: 10px; left: 20px; font-size: 80px; color: rgba(255,153,0,0.2); font-family: Georgia, serif; }
+.stars { color: #ff9900; font-size: 20px; margin-bottom: 15px; letter-spacing: 2px; }
+.quote { font-size: 16px; font-style: italic; line-height: 1.6; margin-bottom: 20px; position: relative; z-index: 2; color: #ddd; }
+.author { color: #ff9900; font-size: 16px; }
+
+@media screen and (max-width: 768px) {
+    .client-logo { font-size: 18px; padding: 0 15px; }
+    .marquee-container::before, .marquee-container::after { width: 40px; }
+}
+
+
+
+
+/* --- Industries We Serve Section --- */
+.industries-section { 
+    background-color: #f9f9f9; 
+    padding: 80px 50px; 
+    text-align: center; 
+}
+.industry-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 20px; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+}
+
+.industry-card {
+    position: relative;
+    height: 350px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.4s ease;
+}
+
+.industry-card h3{
+    font-size: 30px;
+}
+
+.industry-card:hover {
+    transform: translateY(-10px); /* Lifts the whole card up slightly */
+    box-shadow: 0 15px 30px rgba(255,153,0,0.2);
+}
+
+/* The dark gradient overlay that sits on top of the image */
+.industry-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    /* Starts mostly transparent at the top, dark at the bottom so text is readable */
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+    transition: background 0.4s ease;
+    z-index: 1;
+}
+
+/* When hovered, the gradient gets darker so the new text is easy to read */
+.industry-card:hover::before {
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.industry-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 25px 20px;
+    text-align: left;
+    z-index: 2;
+    /* We removed the 70px push so the title ALWAYS stays safely inside the card! */
+}
+
+.industry-content h3 {
+    color: #ff9900;
+    font-size: 24px;
+    margin: 0; /* Resets margin so it sits flush when closed */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    transition: transform 0.4s ease;
+}
+
+.industry-desc {
+    color: #fff;
+    font-size: 15px;
+    line-height: 1.5;
+    /* Hide the text smoothly by crushing its height to 0 */
+    max-height: 0; 
+    opacity: 0; 
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease;
+}
+
+/* --- The Hover Magic (Updated for perfect fit) --- */
+.industry-card:hover .industry-desc {
+    max-height: 150px; /* Opens up enough room for the text */
+    opacity: 1; /* Fades the text in */
+    margin-top: 10px; /* Adds a clean gap between the title and the description */
+}
+
+.industry-card:hover h3 {
+    transform: translateY(-5px); /* Gives the title a slight, premium bump upwards */
+}
+
+
+
+/* --- Data Analysis Dashboard --- */
+.data-section {
+    background-color: #1a1a1a; /* Darker than the normal background for contrast */
+    color: #fff;
+    padding: 80px 50px;
+    text-align: center;
+}
+.data-section h2 {
+    color: #fff;
+}
+.data-dashboard {
+    display: flex;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: center;
+}
+.chart-container {
+    flex: 2;
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.metrics-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+}
+.metric-card {
+    background: #2a2a2a;
+    padding: 25px;
+    border-radius: 8px;
+    border-left: 4px solid #ff9900;
+    transition: transform 0.3s ease;
+}
+.metric-card:hover {
+    transform: translateX(-5px);
+    background: #333;
+}
+.metric-card h4 {
+    color: #ff9900;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.metric-card p {
+    color: #ccc;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Mobile Responsiveness for the Dashboard */
+@media screen and (max-width: 1024px) {
+    .data-dashboard {
+        flex-direction: column;
+    }
+    .chart-container, .metrics-container {
+        width: 100%;
+    }
+}

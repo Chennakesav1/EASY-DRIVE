@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Careers | Precifast Bolt Manufacturing</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="logo"><img src="images/download.jpg" alt="Logo"></div>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="nav-links" id="nav-links">
+            <li class="mobile-back-btn" id="mobile-back-btn">⬅ Back</li>
+            
+            <li><a href="index.html#home" class="mobile-link">Home</a></li>
+            <li><a href="index.html#about" class="mobile-link">About Us</a></li>
+            <li><a href="index.html#services" class="mobile-link">Services</a></li>
+            <li><a href="index.html#staff" class="mobile-link">Staff</a></li>
+            <li><a href="careers.html" class="mobile-link" style="color: #ff9900;">Careers</a></li>
+            <li><a href="index.html#contact" class="mobile-link">Contact</a></li>
+        </ul>
+    </nav>
+
+    <section id="careers" style="background-color: #e2e2e4; min-height: 70vh; padding-top: 80px;">
+        <h2>Careers at PreciFast</h2>
+        <p style="margin-bottom: 30px; color: #555;">Join our team of precision engineers and industry experts.</p>
+        <div class="careers-container">
+            <div class="job-scroll-box">
+                <div class="job-card">
+                    <h3>CNC Machine Operator</h3>
+                    <p><strong>Experience:</strong> 2-5 Years | <strong>Type:</strong> Full-Time</p>
+                    <p class="job-desc">Operate high-precision CNC machines to manufacture custom high-tensile bolts.</p>
+                </div>
+                <div class="job-card">
+                    <h3>Quality Assurance Inspector</h3>
+                    <p><strong>Experience:</strong> 3+ Years | <strong>Type:</strong> Full-Time</p>
+                    <p class="job-desc">Perform rigorous stress testing and ensure all bolts meet ISO certifications.</p>
+                </div>
+                <div class="job-card">
+                    <h3>Supply Chain Manager</h3>
+                    <p><strong>Experience:</strong> 5+ Years | <strong>Type:</strong> Full-Time</p>
+                    <p class="job-desc">Coordinate global shipping logistics for our industrial clients.</p>
+                </div>
+                 <div class="job-card">
+                    <h3>Junior Data Analyst</h3>
+                    <p><strong>Experience:</strong> 0-2 Years | <strong>Type:</strong> Full-Time</p>
+                    <p class="job-desc">Analyze manufacturing data to improve factory efficiency and reduce waste.</p>
+                </div>
+            </div>
+            <button class="hover-btn apply-btn" onclick="openApplyModal()">Apply Now</button>
+        </div>
+    </section>
+
+    <div id="applyModal" class="modal">
+        <div class="modal-content" style="max-width: 600px; text-align: left;">
+            <span class="close-btn" onclick="closeApplyModal()">×</span>
+            <h2 style="text-align: center; margin-bottom: 20px;">Job Application</h2>
+            
+            <div class="step-indicator">
+                <span class="step active">1. Personal</span>
+                <span class="step">2. Academic</span>
+                <span class="step">3. Experience</span>
+                <span class="step">4. Preview</span>
+            </div>
+
+            <form id="applicationForm">
+                <div class="form-step">
+                    <h3>Personal Details</h3>
+                    <input type="text" id="appName" placeholder="Full Name" required class="form-input">
+                    <input type="email" id="appEmail" placeholder="Email Address" required class="form-input">
+                    <input type="text" id="appPhone" placeholder="Phone Number" required class="form-input">
+                </div>
+
+                <div class="form-step" style="display:none;">
+                    <h3>Academic Details</h3>
+                    <input type="text" id="appDegree" placeholder="Highest Degree (e.g., B.Tech Mechanical)" required class="form-input">
+                    <input type="text" id="appUniversity" placeholder="University / College" required class="form-input">
+                    <input type="number" id="appYear" placeholder="Year of Graduation" required class="form-input">
+                </div>
+
+                <div class="form-step" style="display:none;">
+                    <h3>Professional Experience</h3>
+                    <input type="text" id="appRole" placeholder="Current or Last Job Title" class="form-input">
+                    <input type="number" id="appYearsExp" placeholder="Total Years of Experience" class="form-input">
+                    <textarea id="appSkills" placeholder="Key Skills (e.g., AutoCAD, CNC, Python)" rows="3" class="form-input"></textarea>
+                    
+                    <label for="appResume" style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Upload Resume (PDF):</label>
+                    <input type="file" id="appResume" accept=".pdf" required class="form-input" style="padding: 5px;">
+                </div>
+
+                <div class="form-step" style="display:none;">
+                    <h3>Preview Application</h3>
+                    <div id="previewContent" class="preview-box"></div>
+                </div>
+
+                <div class="form-nav-btns" style="display: flex; justify-content: space-between; margin-top: 20px;">
+                    <button type="button" class="hover-btn" id="prevBtn" onclick="nextPrev(-1)" style="display:none; background-color: #666;">Previous</button>
+                    <button type="button" class="hover-btn" id="nextBtn" onclick="nextPrev(1)">Next</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 Precifast Pvt Ltmd. All Rights Reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

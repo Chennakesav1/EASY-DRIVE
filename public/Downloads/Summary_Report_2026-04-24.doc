@@ -1,0 +1,27 @@
+﻿<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'><title>Summary Report</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: Arial, sans-serif; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        h2 { font-family: Arial, sans-serif; color: #2c3e50; }
+    </style></head><body>
+                    <div class="analysis-container" style="display: flex; gap: 40px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 350px;">
+                            <h2 style="margin-bottom: 15px; color: #2c3e50;">Sales Summary</h2>
+                            <table class="data-table" id="sales-summary-table">
+                                <thead><tr><th>Particulars</th><th>Today sales</th><th>MTD Total</th></tr></thead>
+                                <tbody><tr><td>OE</td><td>₹0</td><td>₹0</td></tr><tr><td>Retails</td><td>₹0</td><td>₹0</td></tr><tr><td>SS Dealers</td><td>₹0</td><td>₹0</td></tr></tbody>
+                                <tfoot><tr><th>Grand Total</th><th id="s-today-total">₹0</th><th id="s-mtd-total">₹0</th></tr></tfoot>
+                            </table>
+                        </div>
+                        <div style="flex: 1; min-width: 350px;">
+                            <h2 style="margin-bottom: 15px; color: #2c3e50;">Purchases Summary</h2>
+                            <table class="data-table" id="purchase-summary-table">
+                                <thead><tr><th>Particulars</th><th>Today GRN</th><th>MTD GRN</th></tr></thead>
+                                <tbody><tr><td>Consumables</td><td>₹0</td><td>₹0</td></tr><tr><td>Logistics</td><td>₹0</td><td>₹0</td></tr><tr><td>Maintanance</td><td>₹10,000</td><td>₹10,000</td></tr><tr><td>Outsourcing</td><td>₹0</td><td>₹0</td></tr><tr><td>Packing consu.</td><td>₹0</td><td>₹0</td></tr><tr><td>RM</td><td>₹0</td><td>₹0</td></tr><tr><td>Tools</td><td>₹0</td><td>₹0</td></tr></tbody>
+                                <tfoot><tr><th>Grand Total</th><th id="p-today-total">₹10,000</th><th id="p-mtd-total">₹10,000</th></tr></tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </body></html>

@@ -1,0 +1,58 @@
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,PRECIFAST PVT LIMITED,,,,,,,,
+,TOOL SCHEDULE,,,,,,,,
+,TOOL LAY OUT NO,,TS-W008025981,,SIZE,,,,M8X1.25X25 SHCS
+,DATE,,03/14/2025,,MACHINE,,,,84S
+,WIRE DIA,,Ø7.03,,,,,,
+,S.No.,Tool Code,Tool Description,NO OF TOOLS,REVISION ,,,,REMARKS
+,,,,,,,,,
+, CUT OFF  STATION,,,,1,2,3,4,
+,1,T.02.0.071.003,Feed Roll,2,-,-,-,-,N
+,2,T.02.0.012.001,Pusher Pin,1,-,-,-,-,M8 HHS/HHB
+,3,T.02.0.075.003,Quill ,1,-,-,-,-,N
+,4,T.02.0.076.001,Cutter Holder  ,1,-,-,-,-,M8 HHS/HHB
+,5,T.02.0.073.003,Cutter  ,1,-,-,-,-,N
+,6,T.02.0.077.003,Transfer Finger (L.H.) S,3,-,-,-,-,N
+,7,T.02.0.078.003,Transfer Finger (R.H.) S,3,-,-,-,-,N
+, 1ST STATION,,,,,,,,
+,1,T.02.0.001.001,Punch Case,1,-,-,-,-,M8 HHS/HHB
+,2,T.02.0.005.016,Cone Insert,1,-,-,-,-,N
+,3,T.02.0.006.013,Punch Pin,1,-,-,-,-,N
+,4,T.02.0.004.029,Stepped Filler,1,-,-,-,-,N
+,5,T.02.0.004.028,Punch Filler,1,-,-,-,-,N
+,7,T.02.0.046.001,Plain Die case,1,-,-,-,-,M8 HHS/HHB
+,9,T.02.0.080.003,Front Die (40),1,-,-,-,-,N
+,10,T.02.0.055.009,Inter Filler (30),1,-,-,-,-,N
+,12,T.02.0.056.065,Back Filler (25),2,-,-,-,-,N
+,14,T.02.0.044.002,K.O.Pin,1,-,-,-,-,M8 HHS
+,15,T.02.0.045.002,K.O.Pin Head,1,-,-,-,-,M8 HHS
+, 2ND STATION,,,,,,,,
+,1,T.02.0.001.002,Punch case,1,-,-,-,-,M8 HHS/HHB
+,2,T.02.0.021.016,Heading Insert,1,-,-,-,-,N
+,3,T.02.0.046.004,Die Case,1,-,-,-,-,N
+,4,T.02.0.047.001,Lock Nut,1,-,-,-,-,M8 HHS/HHB
+,5,T.02.0.050.001,Tob Nib (6.30),1,-,-,-,-,N
+,6,T.02.0.052.001,Semi Form Die (20.70),1,-,a,-,-,N
+,7,T.02.0.055.010,Inter Filler (55),1,-,-,-,-,N
+,8,T.02.0.049.005,Nut Bushing (38),1,-,-,-,-,N
+,11,T.02.0.044.002,K.O.Pin,1,-,-,-,-,M8 HHS
+,12,T.02.0.045.002,K.O.Pin Head,1,-,-,-,-,M8 HHS
+, 3RD STATION,,,,,,,,
+,1,T.02.0.001.005,Punch case,1,-,-,-,-,N
+,2,T.02.0.019.001,Hex Pin Spacer,1,-,-,-,-,N
+,3,T.02.0.005.003,Hex Pin Carbide Insert,1,-,-,-,-,N
+,4,T.02.0.014.001, Hex Pin,1,-,-,-,-,N
+,5,T.02.0.004.013,Stepped Filler,1,-,-,-,-,N
+,6,T.02.0.046.005,Die Case,1,-,-,-,-,N
+,7,T.02.0.047.001,Lock Nut,1,-,-,-,-,M8 HHS/HHB
+,8,T.02.0.050.002,Top Nib (8),1,-,-,-,-,N
+,9,T.02.0.052.002,Semi Form Die (20),1,-,a,-,-,N
+,10,T.02.0.058.008,Middle Pointing Die (22),1,-,-,-,-,N (5MM Pointing)
+,11,T.02.0.056.005,Back Filler (30),1,a,-,-,-,M8 HHS
+,12,T.02.0.049.001,Nut Bushing (40),1,-,-,-,-,M8 HHB
+,13,T.02.0.044.005,K.O.Pin,1,-,-,-,-,M8 HHB
+,14,T.02.0.045.005,K.O.Pin Head,1,-,-,-,-,M8 HHB
+, Prepared By :                                                                     Checked By:                                                                              Approved By:,,,,,,,,
+,,,,,,,,,FORMAT NO: FT/DES/08

@@ -1,0 +1,75 @@
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,PRECIFAST PVT LIMITED,,,,,,,,
+,TOOL SCHEDULE,,,,,,,,
+,TOOL LAY OUT NO,,TS-G110027981,,SIZE,,,,M10x1.25x27 FLANGE BOLT
+,DATE,,3/11/2025,,MACHINE,,,,164S
+,WIRE DIA,,Ø13.60,,,,,,
+,S.No.,Tool Code,Tool Description,NO OF TOOLS,REVISION ,,,,REMARKS
+,,,,,,,,,
+, CUT OFF  STATION,,,,1,2,3,4,
+,1,T.04.0.071.002,Feed Roll,4,a,-,-,-,"M14 TOOLS
+"
+,2,T.04.0.012.001,Pusher Pin,1,-,-,-,-,
+,3,T.04.0.075.002,Quill ,1,a,-,-,-,
+,4,T.04.0.076.001,Cutter Holder  ,1,-,-,-,-,
+,5,T.01.0.073.002,Cutter  ,1,-,-,-,-,
+,6,T.04.0.077.003,Transfer Finger (L.H.) S,4,a,-,-,-,N
+,7,T.04.0.078.003,Transfer Finger (R.H.) S,4,a,-,-,-,N
+, 1ST STATION,,,,,,,,
+,1,T.04.0.001.001,Punch Case,1,-,a,-,-,M14 HHS/HHB
+,2,T.04.0.005.025,Cone Insert,1,-,-,-,-,N
+,3,T.04.1.006.003,Trap Pin,1,a,-,-,-,N
+,4,T.04.1.004.006,Stepped Filler,1,-,-,-,-,N
+,5,T.04.0.004.001,Punch Filler,1,-,-,-,-,M14 HHS/HHB
+,6,T.04.0.004.006,Punch Filler,1,-,-,-,-,
+,7,T.04.0.046.002,Die case,1,-,-,-,-,M16 HHS/HHB
+,8,T.04.0.047.001,Die case Nut ,1,-,-,-,-,
+,9,T.04.1.080.005,Front Die (40),1,-,a,-,-,N
+,10,T.04.1.084.002,Extrusion Die (50),1,-,a,-,-,N
+,11,T.04.1.049.004,Nut Bushing (85),1,-,-,-,-,N
+,12,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,13,T.04.1.022.005,Die Case Hard Plate Bush,1,-,-,-,-,N
+,14,T.04.1.044.004,K.O.Pin,1,-,-,-,-,N
+,15,T.04.1.045.004,K.O.Pin Head,1,-,-,-,-,N
+, 2ND STATION,,,,,,,,
+,1,T.04.1.001.003,Punch case,1,a,-,-,-,N
+,2,T.04.1.021.002,Heading Insert,1,-,-,-,-,N
+,3,T.04.1.046.001,Plain Die Case,1,-,-,-,-,M16 HHS/HHB
+,4,T.04.1.052.002,Front Die (40),1,-,-,-,a,N
+,5,T.04.1.056.001,Back Filler (35),1,-,-,-,-,N
+,6,T.04.1.056.002,Back Filler (50) ,2,-,-,-,-,N
+,7,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,8,T.04.1.022.006,Die Case Hard Plate Bush,1,-,-,-,-,N
+,9,T.04.1.044.005,K.O.Pin,1,-,-,-,-,N
+,10,T.04.1.045.005,K.O.Pin Head,1,-,-,-,-,N
+, 3RD STATION,,,,,,,,
+,1,T.04.1.001.004,Punch case,1,-,a,-,-,N
+,2,T.04.1.014.002, HEX Punch Pin,1,-,a,-,-,N
+,3,T.04.1.022.008,Hex Insert Sleeve,1,a,-,-,-,N
+,4,T.04.1.032.002, Hex Insert,1,a,-,-,-,N
+,5,T.04.1.004.004,Stepped Filler,1,-,-,-,-,N
+,6,T.04.1.004.005,Stepped Filler,1,-,-,-,-,N
+,7,T.04.1.004.002,Punch Back Filler,1,-,-,-,-,N
+,8,T.04.1.099.002,Spring,1,-,-,-,-,N
+,9,T.04.1.046.001,Plain Die case,1,-,-,-,-,M16 HHS/HHB
+,10,T.04.1.079.001,Front  W/F Die(40),1,a,-,-,-,N
+,11,T.04.1.056.003,Back Filler(45),3,-,-,-,-,N
+,12,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,13,T.04.1.022.006,Die Case Hard Plate Bush,1,-,-,-,-,N
+,14,T.04.1.044.005,K.O.Pin,1,-,-,-,-,N
+,15,T.04.1.045.005,K.O.Pin Head,1,-,-,-,-,N
+,4TH  STATION,,,,,,,,
+,1,T.04.0.001.005,Trim Die Case,1,-,a,-,-,N
+,2,T.04.1.031.003,Trim Die (Round),1,-,-,-,-,N
+,3,T.04.0.046.003,Trim Punch Case,1,-,-,-,-,M16 HHS/HHB
+,4,T.04.0.062.001,Trim Punch (50),1,-,-,-,-,N
+,5,T.04.1.056.004,Trim Punch Back Filler (75),1,-,-,-,-,N
+,6,T.04.1.056.005,Trim Punch Back Filler (50),1,-,-,-,-,N
+,7,T.04.0.087.019,Die Case Hard Plate (40),1,-,-,-,-,M16 HHS/HHB
+,8,T.04.1.022.007,Die Case Hard Plate Bush,1,-,-,-,-,N
+,9,T.04.1.044.006,K.O.Pin,1,-,-,-,-,N
+,10,T.04.1.045.006,K.O.Pin Head,1,-,-,-,-,N
+, Prepared By :                                                                     Checked By:                                                                              Approved By:,,,,,,,,
+,,,,,FORMAT NO:,,,,

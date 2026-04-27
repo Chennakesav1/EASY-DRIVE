@@ -1,0 +1,32 @@
+,,,,,,,,
+,"Tools Pre / Post qualification
+(Tick relevant)",,,,,,,
+,Date:,,Part No.P006014981,,Desc:M6XL TRUSS HEAD SCREW,,,
+,M/c:,TK - 250,Shift:,,Operator:,,,
+,Cut off station,,,,,,,
+,Parameters,,Spec.,Actual,Parameters,,Spec.,Actual
+,Quill,Bore,5.30 - 5.32,,Cutter,Bore,5.40 - 5.42,
+,,Cutting edge,No damage,,,Cutting edge,No damage,
+,Die side,,,,Punch  side,,,
+,Parameters,,Spec.,Actual,Parameters,,Spec.,Actual
+,I Station,,,,,,,
+,1st Bore,,5.24 - 5.26,,Sliding Punch ID,,5.30 - 5.32,
+,Rubbing Dia,,19.90 - 20.00,,Sliding Punch Mouth Dia,,11.50 - 11.70,
+,Rubbing Depth,,0.2 Ref,,Sliding Punch Mouth Radius,,R5.50 - R6.50,
+,Gap Between Two Rubs,,1.0 Ref,,Pin dia,,5.25 - 5.27,
+,OAL,,100.90 - 101.10,,Pin Total length,,44.90 - 45.10,
+,II Station,,,,,,,
+,1st Bore,,5.24 - 5.26 ,,Punch Mouth Dia,,13.30 - 14.00,
+,Rubbing Dia,,19.90 - 20.00,,Punch Depth,,3.50 - 3.90,
+,Rubbing Depth,,0.2 Ref,,Punch Profile Radius,,R9.0 Ref,
+,Gap Between Two Rubs,,1.0 Ref,,,,,
+,OAL,,100.90 - 101.10,,,,,
+,General (Common for all stations),,,,,,,
+,Visual,,No damage,,Sleeve Fit,,0.13-0.15,
+,Tightness,,No loose,,Heading Insert Fit,,0.13-0.15,
+,K.O Pin movement,,Free Movement,,,,,
+,"Prepared by:                                                       Verified by:                                                    Approved by:
+                                                                       QA Verified by:",,,,,,,
+,Note:,For punch side parameters to be filled based on part no.,,,,,,
+,,,,,,,,Format No: FT/TR/23
+,,,,,,,,Date:29.05.2025
