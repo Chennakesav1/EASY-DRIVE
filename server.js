@@ -176,6 +176,8 @@ app.get('/api/auth/me', async (req, res) => {
         });
     } catch (error) { res.status(500).json({ error: "Internal Server Error" }); }
 });
+
+
 app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), async (req, res) => {
     try {
         const { phone, manualPan, manualAadhaar } = req.body;
@@ -183,40 +185,26 @@ app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), a
 
         let panText = "", aadhaarText = "";
         try {
-            // ✨ SPEED HACK 1: Instantly shrink, compress, and convert images to Grayscale
-            // This reduces the file from ~5MB to ~100KB, making the AI read it 10x faster!
+            // ✨ BULLETPROOF SPEED HACK ✨
+            // .rotate() automatically reads phone EXIF data and flips sideways photos upright!
+            // .normalize() boosts the contrast so the text is incredibly easy to read.
             const [panBuffer, aadhaarBuffer] = await Promise.all([
-                sharp(req.files.pan[0].path).resize({ width: 1000 }).grayscale().jpeg({ quality: 80 }).toBuffer(),
-                sharp(req.files.aadhaar[0].path).resize({ width: 1000 }).grayscale().jpeg({ quality: 80 }).toBuffer()
+                sharp(req.files.pan[0].path).rotate().resize({ width: 1200 }).normalize().grayscale().jpeg().toBuffer(),
+                sharp(req.files.aadhaar[0].path).rotate().resize({ width: 1200 }).normalize().grayscale().jpeg().toBuffer()
             ]);
 
-            const [worker1, worker2] = await Promise.all([
-                Tesseract.createWorker('eng+osd'),
-                Tesseract.createWorker('eng+osd')
-            ]);
-            
-            // ✨ SPEED HACK 2: Give the AI a "Whitelist"
-            // By telling it to ONLY look for uppercase letters and numbers, it skips checking thousands of special symbols.
-            const fastParameters = { 
-                tessedit_pageseg_mode: '1',
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ' 
-            };
-
-            await worker1.setParameters(fastParameters);
-            await worker2.setParameters(fastParameters);
-
-            // Run the optimized AI scans simultaneously using the lightweight Buffers
+            // We go back to standard 'eng' (No more crashing OSD brain)
+            // It runs both cards at the exact same time using the highly optimized images
             const [panResult, aadhaarResult] = await Promise.all([
-                worker1.recognize(panBuffer),
-                worker2.recognize(aadhaarBuffer)
+                Tesseract.recognize(panBuffer, 'eng'),
+                Tesseract.recognize(aadhaarBuffer, 'eng')
             ]);
             
             panText = panResult.data.text.toUpperCase();
             aadhaarText = aadhaarResult.data.text.toUpperCase();
             
-            await worker1.terminate();
-            await worker2.terminate();
         } catch (ocrError) { 
+            console.error("AI Crash:", ocrError);
             return res.status(400).json({ error: "Could not read images. Take a clearer photo." }); 
         }
 
