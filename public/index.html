@@ -127,13 +127,13 @@
             <label class="block-label">Enter PAN Number</label>
             <input type="text" id="manual-pan" class="input-field mb-10" placeholder="e.g. ABCDE1234F" style="text-transform: uppercase;" maxlength="10">
             <label class="block-label text-sm">Upload PAN Image</label>
-            <input type="file" class="input-file mb-20" accept="image/*" capture="environment" onchange="previewDoc(event, 'pan-preview')">
+            <input type="file" class="input-file mb-20" accept="image/*" onchange="previewDoc(event, 'pan-preview')">
             <img id="pan-preview" class="doc-preview hidden mb-20">
             
             <label class="block-label" style="border-top: 1px solid var(--border-color); padding-top: 15px;">Enter Government ID Number</label>
             <input type="text" id="manual-aadhaar" class="input-field mb-10" placeholder="12 Digit Number" maxlength="12">
             <label class="block-label text-sm">Upload ID Image</label>
-            <input type="file" class="input-file mb-10" accept="image/*" capture="environment" onchange="previewDoc(event, 'aadhaar-preview')">
+            <input type="file" class="input-file mb-10" accept="image/*" onchange="previewDoc(event, 'aadhaar-preview')">
             <img id="aadhaar-preview" class="doc-preview hidden">
             
             <button class="btn btn-primary w-100 mt-20" onclick="saveKYC()">Verify & Continue</button>
@@ -205,7 +205,7 @@
             <h3 class="text-blue mb-20">Raise a Complaint</h3>
             <form id="complaint-form" onsubmit="event.preventDefault(); submitComplaint();">
                 <label class="block-label">Take a live photo</label>
-                <input type="file" id="comp-img" class="input-file mb-10" accept="image/*" capture="environment" onchange="previewDoc(event, 'comp-img-preview')" required>
+                <input type="file" id="comp-img" class="input-file mb-10" accept="image/*" onchange="previewDoc(event, 'comp-img-preview')" required>
                 <img id="comp-img-preview" class="doc-preview hidden mb-20">
                 <label class="block-label">Describe your issue</label>
                 <textarea id="comp-issue" class="input-field" style="height: 100px; resize: none;" required></textarea>
