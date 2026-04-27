@@ -328,6 +328,9 @@ function previewDoc(event, previewElementId) {
         reader.readAsDataURL(file);
     }
 }
+// ==========================================
+// ✨ CORE FUNCTION: Save KYC with Strict AI & Timer ✨
+// ==========================================
 async function saveKYC() {
     const manualPan = document.getElementById('manual-pan').value.trim().toUpperCase();
     const manualAadhaar = document.getElementById('manual-aadhaar').value.replace(/\s/g, '');
@@ -337,11 +340,17 @@ async function saveKYC() {
     if (!manualPan || !manualAadhaar) return showToast("Please enter both ID numbers.", "error");
     if (!aadhaarFile || !panFile) return showToast("Please upload both document images.", "error");
 
-    // Let the user know the AI is thinking
-    document.getElementById('loader-text').innerText = "AI Scanning Documents... (Up to 10s)";
-    
     const loader = document.getElementById('global-loader');
     loader.classList.remove('hidden');
+
+    // ✨ ADD REAL-TIME STOPWATCH TIMER ✨
+    let seconds = 0;
+    document.getElementById('loader-text').innerHTML = `AI Scanning Documents...<br><span style="font-size: 1.5rem; color: #cbd5e1; font-weight: bold;">${seconds}s</span>`;
+    
+    const processingTimer = setInterval(() => {
+        seconds++;
+        document.getElementById('loader-text').innerHTML = `AI Scanning Documents...<br><span style="font-size: 1.5rem; color: #cbd5e1; font-weight: bold;">${seconds}s</span>`;
+    }, 1000);
 
     try {
         const formData = new FormData();
@@ -351,14 +360,17 @@ async function saveKYC() {
         formData.append('pan', panFile);
         formData.append('aadhaar', aadhaarFile);
 
+        // Fetch must use the Relative path for your Live website (no http://localhost:3000)
         const response = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await response.json();
         
+        // Stop timer immediately
+        clearInterval(processingTimer);
         loader.classList.add('hidden');
         document.getElementById('loader-text').innerText = "Processing...";
 
         if (response.ok) {
-            showToast("AI Identity Verified!", "success");
+            showToast("✅ AI Identity Verified!", "success");
             localStorage.setItem('easyDriveUser_aadhaar', 'verified'); 
             localStorage.setItem('easyDriveUser_pan', 'verified');
             updateDocStatusInMenu('aadhaar'); 
@@ -366,12 +378,14 @@ async function saveKYC() {
             goToScreen('dashboard-screen'); 
             fetchAndRenderVehicles('All');
         } else { 
-            showToast(data.error || "Verification failed.", "error"); 
+            // AI REJECTED (Text mismatch or bad rotation)
+            openCustomAlert("Verification Mismatch ❌", data.error, "fa-file-circle-exclamation", "#e53e3e", "Take New Photo");
         }
     } catch (error) { 
+        clearInterval(processingTimer);
         loader.classList.add('hidden'); 
         document.getElementById('loader-text').innerText = "Processing...";
-        showToast("Server error.", "error"); 
+        showToast("Server error. Check database connection.", "error"); 
     }
 }
 

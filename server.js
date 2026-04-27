@@ -178,63 +178,64 @@ app.get('/api/auth/me', async (req, res) => {
 });
 
 
-// --- ✨ STRICT AI KYC VERIFICATION ✨ ---
 app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), async (req, res) => {
     try {
         const { phone, manualPan, manualAadhaar } = req.body;
         if (!req.files || !req.files.pan || !req.files.aadhaar) return res.status(400).json({ error: "Missing document images" });
 
-        let panText = "", aadhaarText = "";
-
-        // 1. Extreme Pre-Processing: Forces text to become ultra-readable
-        const processImage = async (filePath) => {
-            return await sharp(filePath)
-                .resize({ width: 1200, withoutEnlargement: true }) // Shrink to speed up processing
-                .grayscale() // Remove color
-                .linear(1.5, -0.2) // ✨ HACK: Massive contrast boost to make text pop
-                .jpeg()
-                .toBuffer();
-        };
-
-        try {
-            const [panBuffer, aadhaarBuffer] = await Promise.all([
-                processImage(req.files.pan[0].path),
-                processImage(req.files.aadhaar[0].path)
-            ]);
-
-            // 2. Fast Parallel AI Scanning
-            const [panResult, aadhaarResult] = await Promise.all([
-                Tesseract.recognize(panBuffer, 'eng'),
-                Tesseract.recognize(aadhaarBuffer, 'eng')
-            ]);
-            
-            panText = panResult.data.text.toUpperCase();
-            aadhaarText = aadhaarResult.data.text.toUpperCase();
-        } catch (ocrError) { 
-            return res.status(400).json({ error: "AI System Error. Please take a clearer photo." }); 
-        }
-
-        // 3. Strict Security Checking
-        const cleanPanText = panText.replace(/[^A-Z0-9]/g, '');
-        const cleanAadhaarText = aadhaarText.replace(/[^0-9]/g, '');
-        
-        // Grab a 6-character chunk of the IDs to verify against the image
+        // Grab chunks of the numbers for strict validation later
         const panChunk = manualPan && manualPan.length >= 6 ? manualPan.substring(2, 8).toUpperCase() : "INVALID_PAN";
         const aadhaarChunk = manualAadhaar && manualAadhaar.length >= 6 ? manualAadhaar.substring(4, 10) : "INVALID_ID";
 
-        // Must find either the specific ID number OR the official government text
-        const isPanValid = cleanPanText.includes(panChunk) || panText.includes("INCOME TAX") || panText.includes("INCOME");
+        // Pre-Process Images instantly (Grayscale, Shrink to 800px width for Speed)
+        const processKYCImage = async (filePath) => {
+            return sharp(filePath).resize({ width: 800, withoutEnlargement: true }).grayscale().jpeg().toBuffer();
+        };
+
+        const [panBuffer, aadhaarBuffer] = await Promise.all([
+            processKYCImage(req.files.pan[0].path),
+            processKYCImage(req.files.aadhaar[0].path)
+        ]);
+
+        // Smart OCR Worker that combines results from multiple simultaneously rotated scans
+        const strictScanWithRotation = async (imgBuffer, description) => {
+            let combinedText = "";
+            try {
+                const results = await Promise.all([
+                    Tesseract.recognize(imgBuffer, 'eng'), // Scan Standard 0 degrees
+                    Tesseract.recognize(await sharp(imgBuffer).rotate(90).toBuffer(), 'eng'), // Scan Sideways
+                    Tesseract.recognize(await sharp(imgBuffer).rotate(180).toBuffer(), 'eng'), // Scan Upside Down
+                    Tesseract.recognize(await sharp(imgBuffer).rotate(270).toBuffer(), 'eng') // Scan other Sideways
+                ]);
+                results.forEach(r => combinedText += r.data.text.toUpperCase());
+            } catch (err) { console.error(`${description} AI error`, err.message); }
+            return combinedText;
+        };
+
+        // RUN BOTH KYC CHECKS IN PARALLEL! Total of 8 scans simultaneously!
+        const [panText, aadhaarText] = await Promise.all([
+            strictScanWithRotation(panBuffer, "PAN"),
+            strictScanWithRotation(aadhaarBuffer, "Aadhaar")
+        ]);
+
+        // --- STRICT VALIDATION SECTION ---
+        // Must find either the exact number chunk OR the official government labels
+        const cleanPanText = panText.replace(/[^A-Z0-9]/g, '');
+        const cleanAadhaarText = aadhaarText.replace(/[^0-9]/g, '');
+        
+        const isPanValid = cleanPanText.includes(panChunk) || panText.includes("INCOME TAX") || panText.includes("PERMANENT ACCOUNT");
         const isAadhaarValid = cleanAadhaarText.includes(aadhaarChunk) || aadhaarText.includes("GOVERNMENT") || aadhaarText.includes("INDIA");
 
         if (!isPanValid || !isAadhaarValid) {
-            return res.status(400).json({ error: "Strict AI Rejected: The text in the image does not match the entered ID numbers." });
+            return res.status(400).json({ error: "AI Verification Failed: The images uploaded do not contain matching text or appear invalid. Please take a clearer photo." });
         }
 
-        // 4. Verification Passed
+        // --- SUCCESS ---
         await User.findOneAndUpdate({ phone }, { $set: { isVerified: true, panUrl: req.files.pan[0].path, aadhaarUrl: req.files.aadhaar[0].path }});
-        return res.json({ success: true, message: "AI Verification Passed!" });
+        return res.json({ success: true, message: "Strict AI Verification Passed!" });
     } catch (error) { 
-        res.status(500).json({ error: "Server verification failed." }); 
+        console.error("Critical KYC Error:", error);
+        res.status(500).json({ error: "Verification system overloaded. Please try again in a moment." }); 
     }
 });
 
