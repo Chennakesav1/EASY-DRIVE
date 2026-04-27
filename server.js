@@ -174,7 +174,6 @@ app.get('/api/auth/me', async (req, res) => {
         });
     } catch (error) { res.status(500).json({ error: "Internal Server Error" }); }
 });
-
 app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), async (req, res) => {
     try {
         const { phone, manualPan, manualAadhaar } = req.body;
@@ -182,14 +181,28 @@ app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), a
 
         let panText = "", aadhaarText = "";
         try {
-            // ✨ THE FIX: Run both AI scans simultaneously instead of waiting! ✨
+            // ✨ THE FIX: Create two smart AI workers that detect rotation automatically
+            const [worker1, worker2] = await Promise.all([
+                Tesseract.createWorker('eng+osd'), // Loads English AND Orientation Detection
+                Tesseract.createWorker('eng+osd')
+            ]);
+            
+            // Tell both AIs to automatically find "Up" and rotate the image before reading (PSM 1)
+            await worker1.setParameters({ tessedit_pageseg_mode: '1' });
+            await worker2.setParameters({ tessedit_pageseg_mode: '1' });
+
+            // Run both scans SIMULTANEOUSLY to cut processing time in half!
             const [panResult, aadhaarResult] = await Promise.all([
-                Tesseract.recognize(req.files.pan[0].path, 'eng'),
-                Tesseract.recognize(req.files.aadhaar[0].path, 'eng')
+                worker1.recognize(req.files.pan[0].path),
+                worker2.recognize(req.files.aadhaar[0].path)
             ]);
             
             panText = panResult.data.text.toUpperCase();
             aadhaarText = aadhaarResult.data.text.toUpperCase();
+            
+            // Clean up memory to keep the server fast
+            await worker1.terminate();
+            await worker2.terminate();
         } catch (ocrError) { 
             return res.status(400).json({ error: "Could not read images. Take a clearer photo." }); 
         }
