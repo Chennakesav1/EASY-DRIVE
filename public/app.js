@@ -343,17 +343,29 @@ async function saveKYC() {
     const loader = document.getElementById('global-loader');
     loader.classList.remove('hidden');
 
-    // ✨ ADD REAL-TIME STOPWATCH TIMER ✨
+    // ✨ BEAUTIFUL REAL-TIME STOPWATCH TIMER ✨
     let seconds = 0;
-    document.getElementById('loader-text').innerHTML = `AI Scanning Documents...<br><span style="font-size: 1.5rem; color: #cbd5e1; font-weight: bold;">${seconds}s</span>`;
+    
+    // Create a helper function to draw the beautiful HTML
+    const renderBeautifulTimer = (sec) => {
+        document.getElementById('loader-text').innerHTML = `
+            <div class="ai-loader-container">
+                <div class="ai-scanning-text">AI Scanning Documents...</div>
+                <div class="ai-timer-badge">${sec}s</div>
+            </div>
+        `;
+    };
+
+    renderBeautifulTimer(seconds); // Show 0s immediately
     
     const processingTimer = setInterval(() => {
         seconds++;
-        document.getElementById('loader-text').innerHTML = `AI Scanning Documents...<br><span style="font-size: 1.5rem; color: #cbd5e1; font-weight: bold;">${seconds}s</span>`;
+        renderBeautifulTimer(seconds);
     }, 1000);
 
     try {
         const formData = new FormData();
+// ... (the rest of your try/catch block stays exactly the same)
         formData.append('phone', localStorage.getItem('easyDriveUser'));
         formData.append('manualPan', manualPan);       
         formData.append('manualAadhaar', manualAadhaar); 
