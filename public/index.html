@@ -130,11 +130,17 @@
             <input type="file" class="input-file mb-20" accept="image/*" onchange="previewDoc(event, 'pan-preview')">
             <img id="pan-preview" class="doc-preview hidden mb-20">
             
-            <label class="block-label" style="border-top: 1px solid var(--border-color); padding-top: 15px;">Enter Government ID Number</label>
+            <label class="block-label" style="border-top: 1px solid var(--border-color); padding-top: 15px;">Enter Government ID AADHAAR Number</label>
             <input type="text" id="manual-aadhaar" class="input-field mb-10" placeholder="12 Digit Number" maxlength="12">
             <label class="block-label text-sm">Upload ID Image</label>
             <input type="file" class="input-file mb-10" accept="image/*" onchange="previewDoc(event, 'aadhaar-preview')">
             <img id="aadhaar-preview" class="doc-preview hidden">
+
+            <div class="mb-20">
+                    <label class="form-label text-left" style="color: var(--text-main); font-weight: 600;"><i class="fa-solid fa-file-invoice"></i> Address Proof (Gas, Electricity, or Hostel Bill)</label>
+                    <input type="file" id="bill-file" class="input-file mb-10" accept="image/*" onchange="previewDoc(event, 'bill-preview')">
+                    <img id="bill-preview" class="hidden" style="width: 100%; max-height: 150px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-color);">
+            </div>
             
             <button class="btn btn-primary w-100 mt-20" onclick="saveKYC()">Verify & Continue</button>
             <p class="center-text mt-15" onclick="logoutUser()" style="color: #e53e3e; cursor: pointer; font-weight: 600;">Cancel & Logout</p>

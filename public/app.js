@@ -334,11 +334,14 @@ function previewDoc(event, previewElementId) {
 async function saveKYC() {
     const manualPan = document.getElementById('manual-pan').value.trim().toUpperCase();
     const manualAadhaar = document.getElementById('manual-aadhaar').value.replace(/\s/g, '');
+    
+    // Using IDs is safer now that we have 3 files
     const panFile = document.querySelectorAll('.input-file')[0].files[0];
     const aadhaarFile = document.querySelectorAll('.input-file')[1].files[0];     
+    const billFile = document.getElementById('bill-file').files[0]; // ✨ NEW
 
     if (!manualPan || !manualAadhaar) return showToast("Please enter both ID numbers.", "error");
-    if (!aadhaarFile || !panFile) return showToast("Please upload both document images.", "error");
+    if (!aadhaarFile || !panFile || !billFile) return showToast("Please upload Aadhaar, PAN, AND an Address Bill.", "error");
 
     const loader = document.getElementById('global-loader');
     loader.classList.remove('hidden');
@@ -350,7 +353,7 @@ async function saveKYC() {
     const renderBeautifulTimer = (sec) => {
         document.getElementById('loader-text').innerHTML = `
             <div class="ai-loader-container">
-                <div class="ai-scanning-text">AI Scanning Documents...</div>
+                <div class="ai-scanning-text">Verifying Documents please wait...</div>
                 <div class="ai-timer-badge">${sec}s</div>
             </div>
         `;
@@ -371,6 +374,7 @@ async function saveKYC() {
         formData.append('manualAadhaar', manualAadhaar); 
         formData.append('pan', panFile);
         formData.append('aadhaar', aadhaarFile);
+        formData.append('addressBill', billFile);
 
         // Fetch must use the Relative path for your Live website (no http://localhost:3000)
         const response = await fetch('/api/upload', { method: 'POST', body: formData });
@@ -382,7 +386,7 @@ async function saveKYC() {
         document.getElementById('loader-text').innerText = "Processing...";
 
         if (response.ok) {
-            showToast("✅ AI Identity Verified!", "success");
+            showToast("✅ Identity Verified! by Safe Check", "success");
             localStorage.setItem('easyDriveUser_aadhaar', 'verified'); 
             localStorage.setItem('easyDriveUser_pan', 'verified');
             updateDocStatusInMenu('aadhaar'); 

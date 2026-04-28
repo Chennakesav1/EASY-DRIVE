@@ -130,13 +130,17 @@ async function fetchUserData() {
         const tbody = document.getElementById('user-table-body');
         tbody.innerHTML = '';
         users.forEach(user => {
-            const safeAadhaar = user.aadhaarUrl && user.aadhaarUrl.startsWith('http') ? user.aadhaarUrl : 'https://placehold.co/150x100/eeeeee/999999?text=No+Doc';
+           const safeAadhaar = user.aadhaarUrl && user.aadhaarUrl.startsWith('http') ? user.aadhaarUrl : 'https://placehold.co/150x100/eeeeee/999999?text=No+Doc';
             const safePan = user.panUrl && user.panUrl.startsWith('http') ? user.panUrl : 'https://placehold.co/150x100/eeeeee/999999?text=No+Doc';
+            const safeBill = user.addressBillUrl && user.addressBillUrl.startsWith('http') ? user.addressBillUrl : 'https://placehold.co/150x100/eeeeee/999999?text=No+Doc';
+
             let docsHtml = '';
             if (user.aadhaarUrl) docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#3182ce; color:#3182ce;" onclick="viewDocument('${safeAadhaar}')">Aadhaar</button> `;
             if (user.panUrl) docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#805ad5; color:#805ad5;" onclick="viewDocument('${safePan}')">PAN</button> `;
             
-            // ✨ NEW: The Admin Override Button
+            // ✨ NEW: View Address Bill Button
+            if (user.addressBillUrl) docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#d69e2e; color:#d69e2e;" onclick="viewDocument('${safeBill}')">Bill</button> `;
+            
             docsHtml += `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem; border-color:#e53e3e; color:#e53e3e;" onclick="triggerAdminKycUpdate('${user.phone}')"><i class="fa-solid fa-upload"></i> Fix</button>`;
             
             const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
@@ -585,9 +589,9 @@ async function submitAdminKyc(event) {
     const phone = document.getElementById('admin-kyc-phone-input').value;
     const aadhaarFile = document.getElementById('admin-aadhaar-file').files[0];
     const panFile = document.getElementById('admin-pan-file').files[0];
+    const billFile = document.getElementById('admin-bill-file').files[0]; // ✨ NEW
 
-    // Check if they selected at least one file
-    if (!aadhaarFile && !panFile) {
+    if (!aadhaarFile && !panFile && !billFile) {
         showAdminToast("Please select at least one file to update.", "error");
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -598,6 +602,7 @@ async function submitAdminKyc(event) {
     fd.append('phone', phone);
     if (aadhaarFile) fd.append('aadhaar', aadhaarFile); // Exact mapping!
     if (panFile) fd.append('pan', panFile); // Exact mapping!
+    if (billFile) fd.append('addressBill', billFile);
 
     try {
         const res = await fetch('/api/admin/update-kyc', { method: 'POST', body: fd });

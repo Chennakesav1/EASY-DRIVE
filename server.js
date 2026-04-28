@@ -57,6 +57,7 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/easydrive")
 const User = mongoose.model('User', new mongoose.Schema({
     name: String, phone: String, email: String, 
     aadhaarUrl: String, panUrl: String, isVerified: { type: Boolean, default: false },
+    addressBillUrl: String,
     createdAt: { type: Date, default: Date.now }, // ✨ NEW: Join Date
     lastLogin: { type: Date, default: Date.now }, paymentStatus: { type: String, default: 'Pending' },
     currentOtp: Number, otpExpiry: Date,
@@ -179,13 +180,18 @@ app.get('/api/auth/me', async (req, res) => {
 
 
 // --- ✨ SOFT CHECK KYC (FAST & CUSTOMER FRIENDLY) ✨ ---
-app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), async (req, res) => {
+app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }, { name: 'addressBill' }]), async (req, res) => {
     try {
         const { phone } = req.body;
-        if (!req.files || !req.files.pan || !req.files.aadhaar) return res.status(400).json({ error: "Missing document images" });
+        
+        // Ensure all 3 files are provided
+        if (!req.files || !req.files.pan || !req.files.aadhaar || !req.files.addressBill) {
+            return res.status(400).json({ error: "Please select all 3 document images (Aadhaar, PAN, and Bill)." });
+        }
 
         const panPath = req.files.pan[0].path;
         const aadhaarPath = req.files.aadhaar[0].path;
+        const billPath = req.files.addressBill[0].path; // ✨ NEW
 
         // 1. Extremely Fast Basic Check (Shrink to 800px, Grayscale, 1 Scan Only)
         try {
@@ -212,9 +218,12 @@ app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), a
         }
 
         // 2. ALWAYS let the customer in. Mark as verified so they can rent immediately!
-        await User.findOneAndUpdate({ phone }, { $set: { isVerified: true, panUrl: panPath, aadhaarUrl: aadhaarPath }});
+        await User.findOneAndUpdate(
+            { phone }, 
+            { $set: { isVerified: true, panUrl: panPath, aadhaarUrl: aadhaarPath, addressBillUrl: billPath } }
+        );
+        
         return res.json({ success: true, message: "Documents Accepted! Pending Admin Review." });
-
     } catch (error) { 
         res.status(500).json({ error: "Server upload failed. Try again." }); 
     }
@@ -675,14 +684,14 @@ async function sendMetaWhatsApp(toPhone, templateName, variables = []) {
 }
 
 // --- ✨ ADMIN PORTAL: OVERRIDE CUSTOMER KYC ✨ ---
-app.post('/api/admin/update-kyc', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }]), async (req, res) => {
+app.post('/api/admin/update-kyc', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }, { name: 'addressBill' }]), async (req, res) => {
     try {
         const { phone } = req.body;
         const updateData = {};
         
-        // Update whichever files the admin decided to upload
         if (req.files.pan) updateData.panUrl = req.files.pan[0].path;
         if (req.files.aadhaar) updateData.aadhaarUrl = req.files.aadhaar[0].path;
+        if (req.files.addressBill) updateData.addressBillUrl = req.files.addressBill[0].path; // ✨ NEW
         
         await User.findOneAndUpdate({ phone }, { $set: updateData });
         res.json({ success: true, message: "Admin updated KYC successfully." });
