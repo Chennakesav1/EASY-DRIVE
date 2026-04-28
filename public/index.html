@@ -17,10 +17,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -487,26 +483,6 @@
             <h3 class="text-blue mb-20"><i class="fa-solid fa-history"></i> Swap History</h3>
             <div id="swap-history-list"
                 style="display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto;">
-            </div>
-        </div>
-    </div>
-
-
-    <div id="showroom-modal" class="modal hidden" style="z-index: 100000;">
-        <div class="modal-content" style="max-width: 600px; padding: 0; overflow: hidden; background: #ffffff; border-radius: 15px;">
-            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; border-bottom: 1px solid #eee;">
-                <h3 style="margin: 0; color: #2d3748;"><i class="fa-solid fa-cube text-blue"></i> 3D Interactive View</h3>
-                <i class="fa-solid fa-xmark close-btn" style="position: static; font-size: 1.5rem;" onclick="close3DShowroom()"></i>
-            </div>
-            
-            <div id="3d-canvas-container" style="width: 100%; height: 400px; background: radial-gradient(circle, #ffffff, #e2e8f0); position: relative; cursor: grab;">
-                <div id="3d-loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; color: #3182ce;">
-                    <i class="fa-solid fa-spinner fa-spin"></i> Loading 3D Model...
-                </div>
-            </div>
-            
-            <div style="padding: 15px; text-align: center; background: #f8f9fa; border-top: 1px solid #eee;">
-                <p style="margin: 0; font-size: 0.85rem; color: #718096;"><i class="fa-solid fa-hand-pointer"></i> Drag to rotate • Pinch to zoom</p>
             </div>
         </div>
     </div>

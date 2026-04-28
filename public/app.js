@@ -493,6 +493,7 @@ async function fetchAndRenderVehicles(filterType = "All") {
         renderVehiclesToGrid(filterType);
     } catch (error) { grid.innerHTML = '<p class="center-text text-red mt-20">Failed to load vehicles.</p>'; }
 }
+
 function renderVehiclesToGrid(filterType = "All") {
     const grid = document.getElementById('main-content-grid');
     grid.innerHTML = ''; grid.className = 'vehicle-grid';
@@ -552,10 +553,6 @@ function renderVehiclesToGrid(filterType = "All") {
                 
                 ${priceHtml}
                 ${buttonHtml}
-                
-                <button class="btn btn-outline w-100 mt-10" style="border-color: #805ad5; color: #805ad5;" onclick="open3DShowroom('/models/electric-scooty.glb')">
-                    <i class="fa-solid fa-vr-cardboard"></i> View in 3D
-                </button>
             </div>`;
         grid.appendChild(card);
     });
@@ -1223,108 +1220,4 @@ async function viewSwapHistory() {
 // ✨ FAQ TOGGLE
 function toggleFAQ(element) {
     element.classList.toggle('active');
-}
-
-
-// ==========================================
-// ✨ THREE.JS 3D SHOWROOM ENGINE ✨
-// ==========================================
-let showroomScene, showroomCamera, showroomRenderer, showroomControls;
-let currentModel;
-
-function init3DShowroom() {
-    const container = document.getElementById('3d-canvas-container');
-    
-    // 1. Setup Scene & Camera
-    showroomScene = new THREE.Scene();
-    showroomCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-    showroomCamera.position.set(3, 2, 4);
-
-    // 2. Setup Renderer (High Quality Anti-Aliasing)
-    showroomRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    showroomRenderer.setSize(container.clientWidth, container.clientHeight);
-    showroomRenderer.setPixelRatio(window.devicePixelRatio);
-    showroomRenderer.outputEncoding = THREE.sRGBEncoding;
-    
-    // Clear previous canvas if it exists
-    container.querySelectorAll('canvas').forEach(c => c.remove());
-    container.appendChild(showroomRenderer.domElement);
-
-    // 3. Setup Lighting (Studio setup for beautiful reflections)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    showroomScene.add(ambientLight);
-    
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 10, 7);
-    showroomScene.add(directionalLight);
-
-    const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
-    backLight.position.set(-5, 5, -7);
-    showroomScene.add(backLight);
-
-    // 4. Setup Touch/Mouse Controls
-    showroomControls = new THREE.OrbitControls(showroomCamera, showroomRenderer.domElement);
-    showroomControls.enableDamping = true;
-    showroomControls.dampingFactor = 0.05;
-    showroomControls.enablePan = false; 
-    showroomControls.minDistance = 2; // Prevent zooming inside the bike
-    showroomControls.maxDistance = 7; // Prevent zooming too far out
-    
-    // Strictly enforcing NO AUTO LOOP. Interaction driven only.
-    showroomControls.autoRotate = false; 
-
-    // Handle Window Resizing
-    window.addEventListener('resize', () => {
-        if (container.clientWidth > 0) {
-            showroomCamera.aspect = container.clientWidth / container.clientHeight;
-            showroomCamera.updateProjectionMatrix();
-            showroomRenderer.setSize(container.clientWidth, container.clientHeight);
-        }
-    });
-
-    animate3D();
-}
-
-function animate3D() {
-    requestAnimationFrame(animate3D);
-    if (showroomControls) showroomControls.update(); // Required for smooth damping
-    if (showroomRenderer && showroomScene && showroomCamera) {
-        showroomRenderer.render(showroomScene, showroomCamera);
-    }
-}
-
-function open3DShowroom(modelFileUrl) {
-    document.getElementById('showroom-modal').classList.remove('hidden');
-    document.getElementById('3d-loader').classList.remove('hidden');
-    
-    // Initialize engine if first time
-    if (!showroomRenderer) init3DShowroom();
-
-    // Remove old model if user clicked a different bike
-    if (currentModel) showroomScene.remove(currentModel);
-
-    // Load the Electric Scooty .glb or .gltf file
-    const loader = new THREE.GLTFLoader();
-    loader.load(
-        modelFileUrl, 
-        function (gltf) {
-            currentModel = gltf.scene;
-            
-            // Center and scale the scooty perfectly
-            currentModel.position.set(0, -1, 0); 
-            currentModel.scale.set(1, 1, 1);
-            
-            showroomScene.add(currentModel);
-            document.getElementById('3d-loader').classList.add('hidden');
-        }, 
-        undefined, 
-        function (error) {
-            console.error("3D Model failed to load:", error);
-            document.getElementById('3d-loader').innerHTML = "<i class='fa-solid fa-triangle-exclamation text-red'></i> Error loading model.";
-        }
-    );
-}
-
-function close3DShowroom() {
-    document.getElementById('showroom-modal').classList.add('hidden');
 }
