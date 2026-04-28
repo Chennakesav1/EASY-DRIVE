@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Easy Drive - Admin Dashboard</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="data:,\">
     <link rel="stylesheet" href="admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,362 +24,166 @@
             
             <div class="admin-sidebar">
                 <div class="admin-sidebar-header">
-                    <h2><i class="fa-solid fa-bolt"></i> Control Panel</h2>
+                    <h2 style="color: var(--primary-blue); margin: 0;"><i class="fa-solid fa-leaf"></i> Easy Drive</h2>
+                    <p style="font-size: 0.8rem; color: #718096; margin-top: 5px;">Control Panel</p>
                 </div>
                 
-                <button class="tab-btn active" onclick="switchTab('tab-overview', this)"><i class="fa-solid fa-chart-line"></i> Overview</button>
+                <button class="tab-btn active" onclick="switchTab('tab-dashboard', this)"><i class="fa-solid fa-chart-line"></i> Overview</button>
                 <button class="tab-btn" onclick="switchTab('tab-users', this)"><i class="fa-solid fa-users"></i> Users & KYC</button>
+                <button class="tab-btn" onclick="switchTab('tab-bookings', this)"><i class="fa-solid fa-key"></i> Active Bookings</button>
+                <button class="tab-btn" onclick="switchTab('tab-inventory', this)"><i class="fa-solid fa-warehouse"></i> Fleet Inventory</button>
+                <button class="tab-btn" onclick="switchTab('tab-hubs', this)"><i class="fa-solid fa-charging-station"></i> Swap Hubs</button>
+                <button class="tab-btn" onclick="switchTab('tab-returns', this)"><i class="fa-solid fa-rotate-left"></i> Returns</button>
+                <button class="tab-btn" onclick="switchTab('tab-damage', this)"><i class="fa-solid fa-triangle-exclamation"></i> Damaged Vehicles</button>
+                <button class="tab-btn" onclick="switchTab('tab-promos', this)"><i class="fa-solid fa-ticket"></i> Promo Codes</button>
                 
-                <button class="tab-btn" onclick="switchTab('tab-referrals', this)"><i class="fa-solid fa-gift text-green"></i> Referrals</button>
-                
-                <button class="tab-btn" onclick="switchTab('tab-promos', this)"><i class="fa-solid fa-tags"></i> Promo Codes</button>
-                <button class="tab-btn" onclick="switchTab('tab-inventory', this)"><i class="fa-solid fa-warehouse"></i> Inventory</button>
-                <button class="tab-btn" onclick="switchTab('tab-addbike', this)"><i class="fa-solid fa-plus"></i> Add Bike</button>
-                <button class="tab-btn" onclick="switchTab('tab-handovers', this)"><i class="fa-solid fa-key"></i> Handovers</button>
-                <button class="tab-btn" onclick="switchTab('tab-returned', this)"><i class="fa-solid fa-rotate-left"></i> Returned</button>
-                <button class="tab-btn" onclick="switchTab('tab-damage', this)"><i class="fa-solid fa-screwdriver-wrench"></i> Damage</button>
-                <button class="tab-btn" onclick="switchTab('tab-payments', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Payments</button>
-                <button class="tab-btn" onclick="switchTab('tab-stations', this)"><i class="fa-solid fa-charging-station"></i> Swap Hubs</button>
-                <button class="tab-btn" onclick="switchTab('tab-complaints', this)">
-                    <i class="fa-solid fa-headset"></i> Complaints
-                    <span id="pending-badge" style="background: #e53e3e; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; margin-left: auto; display: none;">0</span>
-                </button>
-
-                <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <button class="tab-btn" onclick="logoutAdmin()" style="color: #e53e3e;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
-                </div>
+                <button class="tab-btn" onclick="logoutAdmin()" style="margin-top: auto; color: #e53e3e;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
             </div>
 
             <div class="admin-main-content">
                 
-                <div id="tab-overview" class="tab-content card" style="border-top-color: var(--btn-blue);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 style="margin: 0; color: var(--btn-blue);"><i class="fa-solid fa-chart-line"></i> Revenue Overview</h3>
-                        <button class="btn btn-outline" onclick="initDashboardChart()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
-                    </div>
-                    <div style="width: 100%; height: 350px;"><canvas id="mainDashboardChart"></canvas></div>
-                </div>
-
-                <div id="tab-users" class="tab-content hidden card" style="border-top-color: var(--btn-blue);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <h3 style="margin: 0; color: var(--btn-blue);"><i class="fa-solid fa-users"></i> User Directory</h3>
-                        <div style="position: relative;">
-                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 12px; color: #a0aec0;"></i>
-                            <input type="text" id="user-search" class="input-field" placeholder="Search Phone..." onkeyup="searchUsers()" style="width: 250px; padding: 10px 10px 10px 35px;">
+                <div id="tab-dashboard" class="tab-content">
+                    <h2 style="margin-bottom: 20px;">System Overview</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div class="card" style="border-top-color: var(--primary-blue);">
+                            <h4 style="color: var(--text-muted);"><i class="fa-solid fa-users"></i> Total Users</h4>
+                            <h2 id="stat-users" style="margin-top: 10px; font-size: 2rem;">0</h2>
+                        </div>
+                        <div class="card" style="border-top-color: var(--btn-green);">
+                            <h4 style="color: var(--text-muted);"><i class="fa-solid fa-key"></i> Active Rentals</h4>
+                            <h2 id="stat-rentals" style="margin-top: 10px; font-size: 2rem;">0</h2>
+                        </div>
+                        <div class="card" style="border-top-color: var(--btn-orange);">
+                            <h4 style="color: var(--text-muted);"><i class="fa-solid fa-warehouse"></i> Available Bikes</h4>
+                            <h2 id="stat-bikes" style="margin-top: 10px; font-size: 2rem;">0</h2>
+                        </div>
+                        <div class="card" style="border-top-color: #805ad5;">
+                            <h4 style="color: var(--text-muted);"><i class="fa-solid fa-indian-rupee-sign"></i> Revenue</h4>
+                            <h2 id="stat-revenue" style="margin-top: 10px; font-size: 2rem;">₹0</h2>
                         </div>
                     </div>
-                    <div style="overflow-x: auto;">
-                        <table style="white-space: nowrap;">
-                            <thead><tr><th>Join Date</th><th>Name</th><th>Phone</th><th>Wallet</th><th>Docs</th><th>Status</th></tr></thead>
+                    <div class="card w-100">
+                        <h3>Revenue Trend</h3>
+                        <canvas id="revenueChart" style="max-height: 300px; margin-top: 15px;"></canvas>
+                    </div>
+                </div>
+
+                <div id="tab-users" class="tab-content hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2><i class="fa-solid fa-users text-blue"></i> Users Directory</h2>
+                        <button class="btn btn-outline" onclick="fetchUserData()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                    </div>
+                    <div class="card" style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer Name</th>
+                                    <th>Phone</th>
+                                    <th>KYC Documents</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
                             <tbody id="user-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <div id="tab-referrals" class="tab-content hidden card" style="border-top-color: #27ae60;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <h3 style="margin: 0; color: #27ae60;"><i class="fa-solid fa-gift"></i> Referral Tracking</h3>
-                        <div style="position: relative;">
-                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 12px; color: #a0aec0;"></i>
-                            <input type="text" id="referral-search" class="input-field" placeholder="Search Phone..." onkeyup="searchReferrals()" style="width: 250px; padding: 10px 10px 10px 35px;">
-                        </div>
+                <div id="tab-bookings" class="tab-content hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2><i class="fa-solid fa-key" style="color: var(--btn-green);"></i> Active Bookings</h2>
+                        <button class="btn btn-outline" onclick="fetchBookingsData()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
                     </div>
-                    <div style="overflow-x: auto;">
-                        <table style="white-space: nowrap;">
-                            <thead><tr><th>Join Date</th><th>New User</th><th>New Phone</th><th>Referred By (Phone)</th><th>Reward Status</th></tr></thead>
-                            <tbody id="referral-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="tab-promos" class="tab-content hidden card" style="border-top-color: var(--btn-orange);">
-                    <h3 style="margin-bottom: 15px; color: var(--btn-orange);"><i class="fa-solid fa-tags"></i> Promo Codes & Broadcast</h3>
-                    <div style="display: flex; gap: 10px; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                        <input type="text" id="promo-name-input" class="input-field" placeholder="Code (e.g. EASY50)" style="max-width: 200px;">
-                        <input type="number" id="promo-amount-input" class="input-field" placeholder="Discount (₹)" style="max-width: 150px;">
-                        <button class="btn btn-primary" style="background: #25D366;" onclick="sendBulkPromo()"><i class="fa-brands fa-whatsapp"></i> Broadcast & Save</button>
-                    </div>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; max-width: 700px;">
-                            <thead><tr><th>Promo Code</th><th>Flat Discount</th><th>Action</th></tr></thead>
-                            <tbody id="promo-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="tab-inventory" class="tab-content hidden card" style="border-top-color: var(--btn-orange);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <h3 style="margin: 0; color: var(--btn-orange);"><i class="fa-solid fa-warehouse"></i> Vehicle Inventory</h3>
-                        <div style="position: relative;">
-                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 12px; color: #a0aec0;"></i>
-                            <input type="text" id="bike-search" class="input-field" placeholder="Search Model..." onkeyup="searchBikes()" style="width: 250px; padding: 10px 10px 10px 35px;">
-                        </div>
-                    </div>
-                    <div style="overflow-x: auto;">
+                    <div class="card" style="overflow-x: auto;">
                         <table>
-                            <thead><tr><th>Image</th><th>Model & Speed</th><th>Type</th><th>Deposit</th><th>Qty</th><th>Base Rent</th><th>Discount</th><th>Final Price</th><th>Action</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Phone</th>
+                                    <th>Vehicle</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="booking-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-inventory" class="tab-content hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2><i class="fa-solid fa-warehouse" style="color: var(--btn-orange);"></i> Fleet Inventory</h2>
+                        <button class="btn btn-primary" onclick="document.getElementById('add-bike-modal').classList.remove('hidden')"><i class="fa-solid fa-plus"></i> Add New Vehicle</button>
+                    </div>
+                    <div class="card" style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Type</th>
+                                    <th>Price/Mo</th>
+                                    <th>Qty Available</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
                             <tbody id="bike-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <div id="tab-addbike" class="tab-content hidden card" style="border-top-color: var(--btn-green); max-width: 800px;">
-                    <h3 style="margin-bottom: 20px; color: var(--btn-green);"><i class="fa-solid fa-plus-circle"></i> Add New Vehicle</h3>
-                    <form id="add-bike-form" onsubmit="addBike(event)">
-                        <div class="input-group"><label class="block-label">Vehicle Name / Model</label><input type="text" id="bike-model" class="input-field" required></div>
-                        <div class="flex-row">
-                            <div class="input-group" style="flex: 1;"><label class="block-label">Charging Type</label><select id="bike-type" class="input-field"><option value="Swapping">Battery Swapping</option><option value="Home Charge">Home Charging</option></select></div>
-                            <div class="input-group" style="flex: 1;"><label class="block-label">Range (km)</label><input type="number" id="bike-range" class="input-field" required></div>
-                        </div>
-                        <div class="flex-row">
-                            <div class="input-group" style="flex: 1;"><label class="block-label">Top Speed (km/h)</label><input type="number" id="bike-speed" class="input-field" required></div>
-                            <div class="input-group" style="flex: 1;"><label class="block-label">Security Deposit (₹)</label><input type="number" id="bike-deposit" class="input-field" required></div>
-                        </div>
-                        <div class="flex-row">
-                            <div class="input-group" style="flex: 1;"><label class="block-label">Base Rent per Day (₹)</label><input type="number" id="bike-price" class="input-field" required></div>
-                            <div class="input-group" style="flex: 1;"><label class="block-label">Discount (%)</label><input type="number" id="bike-discount" class="input-field" value="0"></div>
-                        </div>
-                        <div class="flex-row">
-                            <div class="input-group" style="flex: 1;"><label class="block-label">Total Quantity</label><input type="number" id="bike-qty" class="input-field" required></div>
-                            <div class="input-group" style="flex: 2;"><label class="block-label">Pickup Location Link</label><input type="url" id="bike-location" class="input-field" required></div>
-                        </div>
-                        <div class="input-group" style="margin-top: 15px;">
-                            <label class="block-label">Vehicle Image</label>
-                            <div style="display: flex; gap: 15px; align-items: center; background: #f7fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e0;">
-                                <input type="file" id="bike-img-input" accept="image/*" onchange="previewBikeImg(event)" required>
-                                <div style="width: 120px; height: 80px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; background: white;">
-                                    <img id="bike-preview" class="hidden" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                                    <span id="preview-placeholder" style="font-size: 0.8rem; color: #aaa;">No Preview</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100" style="background: var(--btn-green); margin-top: 15px; padding: 15px; font-size: 1.1rem;"><i class="fa-solid fa-save"></i> Save Vehicle</button>
-                    </form>
-                </div>
-
-                <div id="tab-handovers" class="tab-content hidden card" style="border-top-color: #8b5cf6;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <h3 style="margin: 0; color: #8b5cf6;"><i class="fa-solid fa-key"></i> Active Rentals & Handovers</h3>
-                        <div style="position: relative;">
-                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 12px; color: #a0aec0;"></i>
-                            <input type="text" id="handover-search" class="input-field" placeholder="Search Phone..." onkeyup="searchHandovers()" style="width: 250px; padding: 10px 10px 10px 35px;">
-                        </div>
+                <div id="tab-hubs" class="tab-content hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2><i class="fa-solid fa-charging-station" style="color: #38a169;"></i> Swap Hubs</h2>
+                        <button class="btn btn-primary" onclick="document.getElementById('add-hub-modal').classList.remove('hidden')"><i class="fa-solid fa-plus"></i> Add Hub</button>
                     </div>
-                    <div style="overflow-x: auto;">
-                        <table style="white-space: nowrap;">
-                            <thead><tr><th>Date</th><th>Phone</th><th>Vehicle</th><th>Paid</th><th>Due Date</th><th>Timer</th><th>Renewals</th><th>Action</th></tr></thead>
-                            <tbody id="handover-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="tab-returned" class="tab-content hidden card" style="border-top-color: #10b981;">
-                    <h3 style="margin-bottom: 15px; color: #10b981;"><i class="fa-solid fa-clock-rotate-left"></i> Returned History</h3>
-                    <div style="overflow-x: auto;">
-                        <table style="white-space: nowrap;">
-                            <thead><tr><th>Return Date</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Status</th></tr></thead>
-                            <tbody id="returned-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="tab-damage" class="tab-content hidden card" style="border-top-color: #e53e3e;">
-                    <h3 style="margin-bottom: 15px; color: #e53e3e;"><i class="fa-solid fa-burst"></i> Damage & Repairs</h3>
-                    <div style="overflow-x: auto;">
+                    <div class="card" style="overflow-x: auto;">
                         <table>
-                            <thead><tr><th>Name</th><th>Phone</th><th>Vehicle</th><th>Reason</th><th>Date</th><th>Action</th></tr></thead>
+                            <thead><tr><th>Name</th><th>Location</th><th>Lat, Lng</th><th>Batteries</th><th>Action</th></tr></thead>
+                            <tbody id="hub-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-returns" class="tab-content hidden">
+                    <h2><i class="fa-solid fa-rotate-left"></i> Returned Vehicles</h2>
+                    <div class="card mt-20" style="overflow-x: auto;">
+                        <table>
+                            <thead><tr><th>Date</th><th>Customer</th><th>Phone</th><th>Vehicle</th><th>Condition</th></tr></thead>
+                            <tbody id="returns-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-damage" class="tab-content hidden">
+                    <h2><i class="fa-solid fa-triangle-exclamation" style="color: #e53e3e;"></i> Damaged Vehicles (Workshop)</h2>
+                    <div class="card mt-20" style="overflow-x: auto;">
+                        <table>
+                            <thead><tr><th>Date Returned</th><th>Customer</th><th>Vehicle</th><th>Damage Report</th><th>Action</th></tr></thead>
                             <tbody id="damage-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <div id="tab-payments" class="tab-content hidden card" style="border-top-color: var(--btn-pink);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <h3 style="margin: 0; color: var(--btn-pink);"><i class="fa-solid fa-receipt"></i> Transactions</h3>
-                        <div style="display: flex; gap: 10px;">
-                            <div style="position: relative;">
-                                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 12px; color: #a0aec0;"></i>
-                                <input type="text" id="payment-search" class="input-field" placeholder="Search ID, Phone, Date..." onkeyup="searchPayments()" style="width: 250px; padding: 10px 10px 10px 35px;">
-                            </div>
-                            <button class="btn btn-outline" onclick="exportTableToCSV('payment-table-body', 'Payments.csv')" style="border-color: #27ae60; color: #27ae60;"><i class="fa-solid fa-file-excel"></i> Export CSV</button>
-                        </div>
+                <div id="tab-promos" class="tab-content hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2><i class="fa-solid fa-ticket" style="color: #805ad5;"></i> Promo Codes</h2>
+                        <button class="btn btn-primary" onclick="document.getElementById('add-promo-modal').classList.remove('hidden')"><i class="fa-solid fa-plus"></i> Create Broadcast</button>
                     </div>
-                    <div style="overflow-x: auto;">
+                    <div class="card" style="overflow-x: auto;">
                         <table>
-                            <thead><tr><th>Date</th><th>Phone</th><th>ID</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
-                            <tbody id="payment-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="tab-stations" class="tab-content hidden card" style="border-top-color: #2ecc71;">
-                    <h3 style="margin-bottom: 15px; color: #2ecc71;"><i class="fa-solid fa-battery-full"></i> Swap Stations</h3>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
-                        <div class="flex-row">
-                            <input type="text" id="station-name" class="input-field" placeholder="Hub Name" style="flex: 1;">
-                            <input type="text" id="station-address" class="input-field" placeholder="Address" style="flex: 1;">
-                            <input type="number" id="station-batteries" class="input-field" placeholder="Batteries" style="width: 100px;">
-                            <input type="number" id="station-lat" class="input-field" placeholder="Latitude" step="any" style="flex: 1;">
-                            <input type="number" id="station-lng" class="input-field" placeholder="Longitude" step="any" style="flex: 1;">
-                            <button class="btn btn-primary" style="background: #2ecc71;" onclick="addStation()">Drop Pin</button>
-                        </div>
-                    </div>
-                    <table>
-                        <thead><tr><th>Hub Name</th><th>Address</th><th>Available</th><th>Action</th></tr></thead>
-                        <tbody id="station-table-body"></tbody>
-                    </table>
-                </div>
-
-                <div id="tab-complaints" class="tab-content hidden card" style="border-top-color: #e53e3e;">
-                    <h3 style="margin-bottom: 15px; color: #e53e3e;"><i class="fa-solid fa-headset"></i> Customer Complaints Desk</h3>
-                    <div style="overflow-x: auto;">
-                        <table>
-                            <thead><tr><th>Date</th><th>Phone</th><th>Photo</th><th>Description</th><th>Status</th></tr></thead>
-                            <tbody id="complaints-table-body"></tbody>
+                            <thead><tr><th>Code</th><th>Discount (₹)</th><th>Used By</th><th>Created</th><th>Action</th></tr></thead>
+                            <tbody id="promo-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
             </div>
         </div>
-    </div> 
-
-    <div id="doc-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 800px; text-align: center; background: transparent; box-shadow: none;">
-            <span class="close-btn" onclick="document.getElementById('doc-modal').classList.add('hidden')" style="color: white; font-size: 2rem; position: absolute; top: 20px; right: 30px; cursor: pointer;">&times;</span>
-            <img id="doc-full-img" src="" style="max-width: 100%; max-height: 80vh; border-radius: 8px; border: 2px solid white;">
-        </div>
     </div>
 
-    <div id="edit-bike-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 600px; border-top: 4px solid var(--btn-orange);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: var(--btn-orange);"><i class="fa-solid fa-pen"></i> Edit Vehicle</h3>
-                <span class="close-btn" onclick="document.getElementById('edit-bike-modal').classList.add('hidden')" style="cursor: pointer; font-size: 1.5rem;">&times;</span>
-            </div>
-            <form id="edit-bike-form" onsubmit="updateBike(event)">
-                <input type="hidden" id="edit-bike-id">
-                <div class="input-group"><label class="block-label">Model</label><input type="text" id="edit-bike-model" class="input-field" required></div>
-                <div class="flex-row">
-                    <div class="input-group" style="flex:1;"><label class="block-label">Base Rent</label><input type="number" id="edit-bike-price" class="input-field" required></div>
-                    <div class="input-group" style="flex:1;"><label class="block-label">Discount %</label><input type="number" id="edit-bike-discount" class="input-field" required></div>
-                </div>
-                <div class="flex-row">
-                    <div class="input-group" style="flex:1;"><label class="block-label">Quantity</label><input type="number" id="edit-bike-qty" class="input-field" required></div>
-                    <div class="input-group" style="flex:1;"><label class="block-label">Range</label><input type="number" id="edit-bike-range" class="input-field" required></div>
-                </div>
-                <button type="submit" class="btn btn-primary w-100" style="margin-top: 10px;">Save Changes</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="handover-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 450px; border-top: 4px solid #8b5cf6;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="color: #8b5cf6; margin: 0;"><i class="fa-solid fa-key"></i> Confirm Handover</h3>
-                <span class="close-btn" onclick="document.getElementById('handover-modal').classList.add('hidden')" style="cursor: pointer; font-size: 1.5rem;">&times;</span>
-            </div>
-            <form id="handover-form" onsubmit="submitHandover(event)">
-                <input type="hidden" id="handover-booking-id">
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <p style="margin-bottom: 8px;"><strong>Phone:</strong> <span id="handover-display-phone" style="color: var(--primary-blue);"></span></p>
-                    <p style="margin: 0;"><strong>Vehicle:</strong> <span id="handover-display-bike" style="color: var(--text-main);"></span></p>
-                </div>
-                <div class="input-group">
-                    <label class="block-label" style="font-weight: bold;">Upload Customer Live Photo</label>
-                    <input type="file" id="handover-photo" class="input-field" accept="image/*" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100" style="background: #8b5cf6; margin-top: 10px; padding: 12px; font-size: 1.1rem;">
-                    <i class="fa-solid fa-check-circle"></i> Start 28-Day Timer
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <div id="reminder-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 450px; border-top: 4px solid #dd6b20;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="color: #dd6b20; margin: 0;"><i class="fa-brands fa-whatsapp text-green"></i> Send Due Reminder</h3>
-                <span class="close-btn" onclick="document.getElementById('reminder-modal').classList.add('hidden')" style="cursor: pointer; font-size: 1.5rem;">&times;</span>
-            </div>
-            <div style="background: #fffaf0; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #feebc8;">
-                <p style="margin-bottom: 8px; font-weight: bold; color: #c05621; font-size: 1.1rem;"><i class="fa-solid fa-bell"></i> <span id="reminder-days"></span></p>
-                <p style="margin-bottom: 4px; display: flex; justify-content: space-between;"><strong>Customer Phone:</strong> <span id="reminder-phone" style="color: var(--primary-blue); font-weight: bold;"></span></p>
-                <p style="margin: 0; display: flex; justify-content: space-between;"><strong>Vehicle:</strong> <span id="reminder-bike" style="color: var(--text-main);"></span></p>
-            </div>
-            <div class="input-group">
-                <label class="block-label" style="color: var(--text-muted); font-size: 0.85rem;">Auto-filled WhatsApp Message</label>
-                <textarea id="reminder-msg" class="input-field" rows="6" style="resize: none; font-size: 0.95rem; line-height: 1.4; background: #f8f9fa;"></textarea>
-            </div>
-            <button class="btn btn-primary w-100" style="background: #25D366; font-size: 1.1rem; padding: 12px; margin-top: 10px;" onclick="sendWhatsAppReminder()">
-                <i class="fa-brands fa-whatsapp"></i> Open WhatsApp & Send
-            </button>
-        </div>
-    </div>
-
-    <div id="return-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 450px; border-top: 4px solid #10b981;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="color: #10b981; margin: 0;"><i class="fa-solid fa-clock-rotate-left"></i> Process Return</h3>
-                <span class="close-btn" onclick="document.getElementById('return-modal').classList.add('hidden')" style="cursor: pointer; font-size: 1.5rem;">&times;</span>
-            </div>
-            <div style="background: #f0fff4; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c6f6d5;">
-                <p style="margin: 0; display: flex; justify-content: space-between; font-size: 1.1rem;">
-                    <strong>Vehicle:</strong> <span id="return-bike" style="color: var(--primary-blue); font-weight: bold;"></span>
-                </p>
-            </div>
-            <form id="return-form" onsubmit="submitReturn(event)">
-                <input type="hidden" id="return-booking-id">
-                <div class="input-group">
-                    <label class="block-label" style="font-weight: bold;">Return Condition</label>
-                    <select id="return-condition" class="input-field" onchange="toggleDamageInput()" style="font-weight: bold;" required>
-                        <option value="Complete">✅ Good Condition (Complete)</option>
-                        <option value="Damaged">⚠️ Damaged / Needs Repair</option>
-                    </select>
-                </div>
-                <div class="input-group hidden" id="damage-notes-group" style="background: #fff5f5; padding: 10px; border-radius: 6px; border: 1px solid #fed7d7;">
-                    <label class="block-label" style="color: #e53e3e;"><i class="fa-solid fa-burst"></i> Damage Details</label>
-                    <textarea id="return-notes" class="input-field" rows="3" placeholder="What is broken?"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary w-100" style="background: #10b981; font-size: 1.1rem; padding: 12px; margin-top: 15px;">
-                    <i class="fa-solid fa-check-circle"></i> Confirm Vehicle Return
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <div id="receipt-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 450px; border-top: 4px solid var(--btn-pink);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="color: var(--btn-pink); margin: 0;"><i class="fa-solid fa-receipt"></i> Transaction Details</h3>
-                <span class="close-btn" onclick="document.getElementById('receipt-modal').classList.add('hidden')" style="cursor: pointer; font-size: 1.5rem;">&times;</span>
-            </div>
-            <div id="receipt-loader" style="text-align: center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x text-gray"></i><p>Fetching Bank Details...</p></div>
-            <div id="receipt-content" class="hidden">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 id="receipt-amount" style="color: var(--text-main); font-size: 2.5rem; margin: 0;"></h1>
-                    <span id="receipt-status" class="badge" style="font-size: 0.9rem;"></span>
-                </div>
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.95rem;">
-                    <p style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Date & Time</span> <strong id="receipt-date"></strong></p>
-                    <p style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Transaction ID</span> <strong id="receipt-id" style="font-family: monospace;"></strong></p>
-                    <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 12px 0;">
-                    <p style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Customer Name</span> <strong id="receipt-name"></strong></p>
-                    <p style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Phone No.</span> <strong id="receipt-phone"></strong></p>
-                    <p style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Email</span> <strong id="receipt-email"></strong></p>
-                    <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 12px 0;">
-                    <p style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Payment Method</span> <strong id="receipt-method" style="color: var(--primary-blue);"></strong></p>
-                    <p style="margin-bottom: 0; display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Bank / UPI ID</span> <strong id="receipt-bank"></strong></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-
-    <div id="admin-kyc-modal" class="modal flex-center hidden">
-        <div class="card solid-card relative" style="width: 95%; max-width: 400px; border-top: 4px solid #e53e3e;">
+    <div id="admin-kyc-modal" class="modal hidden">
+        <div class="modal-content" style="border-top: 4px solid #e53e3e;">
             <i class="fa-solid fa-xmark close-btn" onclick="document.getElementById('admin-kyc-modal').classList.add('hidden')"></i>
             <h3 class="text-blue mb-20"><i class="fa-solid fa-id-card"></i> Update User KYC</h3>
             
@@ -391,22 +195,120 @@
                 <input type="hidden" id="admin-kyc-phone-input">
                 
                 <div style="margin-bottom: 15px; text-align: left;">
-                    <label style="display:block; font-weight:bold; margin-bottom:8px; color: #333;">1. New Aadhaar Image</label>
+                    <label class="block-label">1. New Aadhaar Image</label>
                     <input type="file" id="admin-aadhaar-file" class="input-file" accept="image/*">
                 </div>
                 
-                <div style="margin-bottom: 25px; text-align: left;">
-                    <label style="display:block; font-weight:bold; margin-bottom:8px; color: #333;">2. New PAN Image</label>
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <label class="block-label">2. New PAN Image</label>
                     <input type="file" id="admin-pan-file" class="input-file" accept="image/*">
                 </div>
+
                 <div style="margin-bottom: 25px; text-align: left;">
-                    <label style="display:block; font-weight:bold; margin-bottom:8px; color: #333;">3. New Address Proof (Bill)</label>
+                    <label class="block-label">3. New Address Proof (Bill)</label>
                     <input type="file" id="admin-bill-file" class="input-file" accept="image/*">
                 </div>
                 
                 <button type="submit" class="btn btn-primary w-100" style="background: #e53e3e; font-size: 1.1rem;">
                     <i class="fa-solid fa-upload"></i> Upload & Replace
                 </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="handover-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-blue mb-20">Vehicle Handover</h3>
+            <form id="handover-form" onsubmit="submitHandover(event)">
+                <input type="hidden" id="handover-booking-id">
+                <label class="block-label">Customer Live Photo</label>
+                <input type="file" id="handover-photo" class="input-file mb-20" accept="image/*" required>
+                <button type="submit" class="btn btn-primary w-100">Confirm Handover</button>
+                <button type="button" class="btn w-100 mt-10" onclick="document.getElementById('handover-modal').classList.add('hidden')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="return-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-blue mb-20">Process Return</h3>
+            <form id="return-form" onsubmit="submitReturn(event)">
+                <input type="hidden" id="return-booking-id">
+                <input type="hidden" id="return-bike-model">
+                <label class="block-label">Vehicle Condition</label>
+                <select id="return-condition" class="input-field mb-20">
+                    <option value="Good Condition">Good Condition (Restock)</option>
+                    <option value="Damaged - Minor">Minor Damage (Send to Workshop)</option>
+                    <option value="Damaged - Major">Major Damage (Send to Workshop)</option>
+                </select>
+                <button type="submit" class="btn btn-primary w-100">Process Return</button>
+                <button type="button" class="btn w-100 mt-10" onclick="document.getElementById('return-modal').classList.add('hidden')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-bike-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="mb-20 text-blue">Add New Vehicle</h3>
+            <form id="add-bike-form" onsubmit="addBike(event)">
+                <input type="text" id="bike-model" class="input-field mb-10" placeholder="Bike Model Name" required>
+                <select id="bike-type" class="input-field mb-10" required>
+                    <option value="Low Speed">Low Speed (No License)</option>
+                    <option value="High Speed">High Speed</option>
+                </select>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="bike-range" class="input-field mb-10" placeholder="Range (km)" required>
+                    <input type="number" id="bike-speed" class="input-field mb-10" placeholder="Speed (km/h)" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="bike-price" class="input-field mb-10" placeholder="Rent Price (₹)" required>
+                    <input type="number" id="bike-deposit" class="input-field mb-10" placeholder="Deposit (₹)" value="1000" required>
+                </div>
+                <input type="number" id="bike-qty" class="input-field mb-10" placeholder="Quantity Available" required>
+                <label class="block-label text-sm">Vehicle Image</label>
+                <input type="file" id="bike-image" class="input-file mb-10" accept="image/*" required>
+                <input type="text" id="bike-maplink" class="input-field mb-20" placeholder="Google Maps Pickup Link" required>
+                <button type="submit" class="btn btn-primary w-100">Save Vehicle</button>
+                <button type="button" class="btn w-100 mt-10" onclick="document.getElementById('add-bike-modal').classList.add('hidden')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-hub-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="mb-20 text-blue">Add Swap Hub</h3>
+            <form onsubmit="addHub(event)">
+                <input type="text" id="hub-name" class="input-field mb-10" placeholder="Hub Name (e.g. Madhapur Central)" required>
+                <textarea id="hub-address" class="input-field mb-10" placeholder="Full Address" required></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="hub-lat" class="input-field mb-10" step="any" placeholder="Latitude (e.g. 17.4482)" required>
+                    <input type="number" id="hub-lng" class="input-field mb-10" step="any" placeholder="Longitude (e.g. 78.3914)" required>
+                </div>
+                <input type="number" id="hub-batteries" class="input-field mb-20" placeholder="Initial Batteries" value="10" required>
+                <button type="submit" class="btn btn-primary w-100">Save Hub</button>
+                <button type="button" class="btn w-100 mt-10" onclick="document.getElementById('add-hub-modal').classList.add('hidden')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-promo-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="mb-20 text-blue">Create Promo & Broadcast</h3>
+            <form onsubmit="addPromoCode(event)">
+                <input type="text" id="promo-code" class="input-field mb-10" placeholder="Code (e.g., SUMMER50)" style="text-transform: uppercase;" required>
+                <input type="number" id="promo-discount" class="input-field mb-20" placeholder="Discount Amount (₹)" required>
+                
+                <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="font-size: 0.85rem; color: #319795; margin-bottom: 5px;"><strong><i class="fa-brands fa-whatsapp"></i> WhatsApp Broadcast</strong></p>
+                    <p style="font-size: 0.8rem; color: #4fd1c5;">This will automatically send a Meta API template message to ALL registered users.</p>
+                    <select id="promo-template" class="input-field mt-10" style="padding: 8px;">
+                        <option value="promo_alert_1">Standard Promo Alert</option>
+                        <option value="festive_offer">Festive Season Offer</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" style="background: #27ae60;">Save & Send Broadcast</button>
+                <button type="button" class="btn w-100 mt-10" onclick="document.getElementById('add-promo-modal').classList.add('hidden')">Cancel</button>
             </form>
         </div>
     </div>
@@ -419,14 +321,19 @@
                 <p id="confirm-message" style="color: var(--text-muted); margin-top: 10px; font-size: 0.95rem; line-height: 1.4;">This action cannot be undone.</p>
             </div>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="btn btn-outline" onclick="closeConfirmModal()" style="flex: 1; border-color: #cbd5e0; color: #4a5568;">Cancel</button>
-                <button id="confirm-action-btn" class="btn btn-primary" style="flex: 1; background: #e53e3e; border: none;">Yes, Proceed</button>
+                <button class="btn btn-outline" onclick="closeConfirmModal()" style="flex: 1; border-color: #cbd5e1; color: #64748b;">Cancel</button>
+                <button id="confirm-action-btn" class="btn btn-primary" style="flex: 1; background: #e53e3e;">Yes, proceed</button>
             </div>
         </div>
     </div>
 
-    <div id="admin-toast">Message</div>
+    <div id="doc-modal" class="modal hidden">
+        <span class="close-btn" onclick="document.getElementById('doc-modal').classList.add('hidden')" style="color: white; font-size: 2rem; position: absolute; right: 30px; top: 20px;">&times;</span>
+        <img id="doc-full-img" src="" style="max-width: 90%; max-height: 80vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+    </div>
+    
+    <div id="admin-toast"></div>
 
-    <script src="admin.js?v=110"></script>
+    <script src="admin.js"></script>
 </body>
 </html>

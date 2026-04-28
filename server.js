@@ -10,17 +10,15 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const nodemailer = require('nodemailer');
 const PDFDocument = require('pdfkit');
+const sharp = require('sharp');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
 app.use(express.static('public')); 
 app.use('/uploads', express.static('uploads'));
 app.use(cors()); 
-
-const sharp = require('sharp');
-
-
-
 
 // ==========================================
 // 1. CONFIGURATIONS (Cloudinary, Razorpay, Email)
@@ -56,14 +54,13 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/easydrive")
 
 const User = mongoose.model('User', new mongoose.Schema({
     name: String, phone: String, email: String, 
-    aadhaarUrl: String, panUrl: String, isVerified: { type: Boolean, default: false },
-    addressBillUrl: String,
-    createdAt: { type: Date, default: Date.now }, // ✨ NEW: Join Date
-    lastLogin: { type: Date, default: Date.now }, paymentStatus: { type: String, default: 'Pending' },
-    currentOtp: Number, otpExpiry: Date,
-    referralCode: String, // ✨ NEW: User's unique code
-    referredBy: { type: String, default: 'None' }, // ✨ NEW: Who referred them
-    walletBalance: { type: Number, default: 0 } // ✨ NEW: Referral Cash
+    aadhaarUrl: String, panUrl: String, addressBillUrl: String,
+    isVerified: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+    lastLogin: { type: Date, default: Date.now }, 
+    referralCode: String, 
+    referredBy: { type: String, default: 'None' }, 
+    walletBalance: { type: Number, default: 0 } 
 }));
 
 const Bike = mongoose.model('Bike', new mongoose.Schema({
@@ -77,16 +74,15 @@ const Booking = mongoose.model('Booking', new mongoose.Schema({
     status: { type: String, default: 'Paid' }, paymentDate: { type: Date, default: Date.now },
     handedDate: Date, dueDate: Date, customerPhotoUrl: String, returnDate: Date, returnReason: String,
     renewalCount: { type: Number, default: 0 }, lastRenewalDate: Date,
-    lastSwapDate: { type: Date, default: Date.now } // ✨ NEW: Tracks battery level over time
+    lastSwapDate: { type: Date, default: Date.now } 
 }));
+
 const Payment = mongoose.model('Payment', new mongoose.Schema({
     phone: String, paymentId: String, amount: Number, status: String, createdAt: { type: Date, default: Date.now }
 }));
+
 const Swap = mongoose.model('Swap', new mongoose.Schema({
-    phone: String,
-    stationName: String,
-    stationAddress: String,
-    date: { type: Date, default: Date.now }
+    phone: String, stationName: String, stationAddress: String, date: { type: Date, default: Date.now }
 }));
 
 const Returned = mongoose.model('Returned', new mongoose.Schema({
@@ -106,59 +102,37 @@ const Promo = mongoose.model('Promo', new mongoose.Schema({
 }));
 
 // ==========================================
-// 3. AUTHENTICATION, KYC & REFERRALS
+// 3. AUTHENTICATION (Firebase Compatible) & KYC
 // ==========================================
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup-firebase', async (req, res) => {
     try {
         const { name, email, phone, referralCode } = req.body;
         if (await User.findOne({ phone })) return res.status(400).json({ error: "Phone number already registered." });
         
-        // ✨ Generate Unique Referral Code (First 3 of name + Last 4 of phone)
         const myReferralCode = (name.substring(0, 3) + phone.substring(6)).toUpperCase();
         let referredByPhone = "None";
         let initialWallet = 0;
 
-        // ✨ Check if they applied a friend's referral code
         if (referralCode) {
             const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
             if (referrer) {
                 referredByPhone = referrer.phone;
-                initialWallet = 100; // Give new user ₹100
-                referrer.walletBalance += 100; // Give referrer ₹100
+                initialWallet = 100; 
+                referrer.walletBalance += 100; 
                 await referrer.save();
             }
         }
 
-        await new User({ 
-            name, email, phone, isVerified: false, 
-            referralCode: myReferralCode, referredBy: referredByPhone, walletBalance: initialWallet 
-        }).save();
-
+        await new User({ name, email, phone, isVerified: false, referralCode: myReferralCode, referredBy: referredByPhone, walletBalance: initialWallet }).save();
         res.json({ success: true, message: "Account created successfully!" });
     } catch (error) { res.status(500).json({ error: "Signup failed." }); }
 });
 
-app.post('/api/auth/send-login-otp', async (req, res) => {
+app.post('/api/auth/login-firebase', async (req, res) => {
     try {
         const { phone } = req.body;
         const user = await User.findOne({ phone });
-        if (!user) return res.status(404).json({ error: "Phone number not registered." });
-        
-        const otp = Math.floor(1000 + Math.random() * 9000);
-        const expiryTime = new Date(Date.now() + 5 * 60 * 1000); 
-        
-        await User.findOneAndUpdate({ phone }, { $set: { currentOtp: otp, otpExpiry: expiryTime } });
-        await sendMetaWhatsApp(phone, 'easy_drive_otp', [otp]);
-        res.json({ success: true, message: "WhatsApp OTP sent successfully!" });
-    } catch (error) { res.status(500).json({ error: "Failed to process request." }); }
-});
-
-app.post('/api/auth/verify-login', async (req, res) => {
-    try {
-        const { phone, otp } = req.body;
-        const user = await User.findOne({ phone });
-        if (!user || user.currentOtp !== parseInt(otp)) return res.status(400).json({ error: "Invalid OTP." });
-        if (new Date() > user.otpExpiry) return res.status(400).json({ error: "OTP expired." });
+        if (!user) return res.status(404).json({ error: "Phone number not registered. Please create an account." });
         
         user.lastLogin = new Date();
         await user.save();
@@ -172,67 +146,42 @@ app.get('/api/auth/me', async (req, res) => {
         if (!user) return res.status(404).json({ error: "User not found" });
         res.json({ 
             name: user.name, email: user.email, phone: user.phone, 
-            aadhaarUrl: user.aadhaarUrl, panUrl: user.panUrl, isVerified: user.isVerified,
-            referralCode: user.referralCode, walletBalance: user.walletBalance // ✨ Fetch Referral Info
+            aadhaarUrl: user.aadhaarUrl, panUrl: user.panUrl, addressBillUrl: user.addressBillUrl, isVerified: user.isVerified,
+            referralCode: user.referralCode, walletBalance: user.walletBalance 
         });
     } catch (error) { res.status(500).json({ error: "Internal Server Error" }); }
 });
 
-
-// --- ✨ SOFT CHECK KYC (FAST & CUSTOMER FRIENDLY) ✨ ---
+// --- SOFT CHECK KYC ---
 app.post('/api/upload', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }, { name: 'addressBill' }]), async (req, res) => {
     try {
         const { phone } = req.body;
-        
-        // Ensure all 3 files are provided
         if (!req.files || !req.files.pan || !req.files.aadhaar || !req.files.addressBill) {
             return res.status(400).json({ error: "Please select all 3 document images (Aadhaar, PAN, and Bill)." });
         }
-
         const panPath = req.files.pan[0].path;
         const aadhaarPath = req.files.aadhaar[0].path;
-        const billPath = req.files.addressBill[0].path; // ✨ NEW
+        const billPath = req.files.addressBill[0].path; 
 
-        // 1. Extremely Fast Basic Check (Shrink to 800px, Grayscale, 1 Scan Only)
         try {
             const panBuffer = await sharp(panPath).resize({ width: 800 }).grayscale().toBuffer();
             const aadhaarBuffer = await sharp(aadhaarPath).resize({ width: 800 }).grayscale().toBuffer();
-
-            const [panResult, aadhaarResult] = await Promise.all([
-                Tesseract.recognize(panBuffer, 'eng'),
-                Tesseract.recognize(aadhaarBuffer, 'eng')
-            ]);
-            
+            const [panResult, aadhaarResult] = await Promise.all([ Tesseract.recognize(panBuffer, 'eng'), Tesseract.recognize(aadhaarBuffer, 'eng') ]);
             const pText = panResult.data.text.toUpperCase();
             const aText = aadhaarResult.data.text.toUpperCase();
-
-            // Basic Keyword Check
             const looksLikePan = pText.includes("INCOME") || pText.includes("TAX") || pText.includes("GOVT") || pText.includes("PERMANENT");
             const looksLikeAadhaar = aText.includes("GOVERNMENT") || aText.includes("INDIA") || aText.includes("UNIQUE");
+            if (!looksLikePan || !looksLikeAadhaar) console.log(`[Soft Check Warning for ${phone}]: Flagged for Admin review.`);
+        } catch (ocrError) { console.log(`[AI Skipped for ${phone}]: AI could not read, flagged for Admin review.`); }
 
-            if (!looksLikePan || !looksLikeAadhaar) {
-                console.log(`[Soft Check Warning for ${phone}]: Images might be blurry or incorrect, but allowing user through for Admin review.`);
-            }
-        } catch (ocrError) { 
-            console.log(`[AI Skipped for ${phone}]: AI could not read the image, allowing user through for Admin review.`);
-        }
-
-        // 2. ALWAYS let the customer in. Mark as verified so they can rent immediately!
-        await User.findOneAndUpdate(
-            { phone }, 
-            { $set: { isVerified: true, panUrl: panPath, aadhaarUrl: aadhaarPath, addressBillUrl: billPath } }
-        );
-        
+        await User.findOneAndUpdate({ phone }, { $set: { isVerified: true, panUrl: panPath, aadhaarUrl: aadhaarPath, addressBillUrl: billPath } });
         return res.json({ success: true, message: "Documents Accepted! Pending Admin Review." });
-    } catch (error) { 
-        res.status(500).json({ error: "Server upload failed. Try again." }); 
-    }
+    } catch (error) { res.status(500).json({ error: "Server upload failed. Try again." }); }
 });
+
 // ==========================================
 // 4. PAYMENTS & RAZORPAY ROUTES
 // ==========================================
-
-// ✨ NEW HELPER: Generates the PDF Invoice automatically in the background ✨
 async function createInvoicePDF(payment, user, booking, bike) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -241,22 +190,16 @@ async function createInvoicePDF(payment, user, booking, bike) {
             doc.on('data', buffers.push.bind(buffers));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-            // --- Company Header ---
             doc.fontSize(26).fillColor('#27ae60').font('Helvetica-Bold').text('EASY DRIVE', { align: 'left' });
             doc.fontSize(10).fillColor('#666666').font('Helvetica').text('Premium EV Rentals - Hyderabad', { align: 'left' });
             doc.moveDown(0.5);
             doc.fillColor('#333333').text('Phone: +91 7989004552');
             doc.text('Email: chennakesavarao89@gmail.com');
-            
-            // --- Divider ---
-            doc.moveDown();
-            doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd');
-            doc.moveDown();
+            doc.moveDown(); doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd'); doc.moveDown();
             
             doc.fontSize(18).fillColor('#333333').font('Helvetica-Bold').text('PAYMENT RECEIPT / INVOICE', { align: 'center' });
             doc.moveDown();
 
-            // --- Customer & Transaction Details ---
             const startY = doc.y;
             doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold').text('Customer Details:', 50, startY);
             doc.font('Helvetica').text(`Name: ${user && user.name ? user.name : 'Guest'}`);
@@ -269,26 +212,19 @@ async function createInvoicePDF(payment, user, booking, bike) {
             doc.text(`Status: ${payment.status}`, 350, startY + 45);
             doc.moveDown(3);
 
-            // --- Payment Table ---
-            doc.x = 50; 
-            const tableTop = doc.y;
+            doc.x = 50; const tableTop = doc.y;
             doc.rect(50, tableTop, 500, 30).fill('#f4f7f6').stroke('#dddddd');
             doc.fillColor('#000').font('Helvetica-Bold').text('Description', 60, tableTop + 10);
             doc.text('Amount', 450, tableTop + 10);
             
-            doc.moveDown(1.5);
-            doc.font('Helvetica');
+            doc.moveDown(1.5); doc.font('Helvetica');
             const desc = booking ? `Vehicle Rental: ${booking.bikeModel}` : 'Vehicle Rental / Subscription Renewal';
             doc.text(desc, 60, doc.y);
             doc.text(`INR ${payment.amount}.00`, 450, doc.y);
             
-            // --- Total ---
-            doc.moveDown(2);
-            doc.moveTo(350, doc.y).lineTo(550, doc.y).stroke('#dddddd');
-            doc.moveDown(0.5);
+            doc.moveDown(2); doc.moveTo(350, doc.y).lineTo(550, doc.y).stroke('#dddddd'); doc.moveDown(0.5);
             doc.fontSize(14).font('Helvetica-Bold').text(`Total Paid: INR ${payment.amount}.00`, { align: 'right' });
             
-            // --- Bike Image Fetch ---
             if (bike && bike.imageUrl) {
                 try {
                     let imgBuffer;
@@ -297,7 +233,6 @@ async function createInvoicePDF(payment, user, booking, bike) {
                         const arrayBuffer = await response.arrayBuffer();
                         imgBuffer = Buffer.from(arrayBuffer);
                     } else {
-                        const fs = require('fs'); const path = require('path');
                         imgBuffer = fs.readFileSync(path.join(__dirname, bike.imageUrl));
                     }
                     doc.moveDown(2); const imageY = doc.y;
@@ -307,13 +242,9 @@ async function createInvoicePDF(payment, user, booking, bike) {
                 } catch (imgErr) { console.log("Could not load image for PDF", imgErr.message); }
             }
 
-            // --- Footer ---
-            doc.y = 700; 
-            doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd');
-            doc.moveDown();
+            doc.y = 700; doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#dddddd'); doc.moveDown();
             doc.fontSize(10).font('Helvetica').fillColor('#888888').text('Thank you for choosing eco-friendly transit with Easy Drive.', { align: 'center' });
             doc.text('For support, contact us at +91 7989004552 or chennakesavarao89@gmail.com', { align: 'center' });
-
             doc.end(); 
         } catch (err) { reject(err); }
     });
@@ -335,57 +266,31 @@ app.post('/api/payment/verify', async (req, res) => {
         const newPayment = await new Payment({ phone, paymentId: razorpay_payment_id, amount, status: 'Success' }).save();
         const newBooking = await new Booking({ phone, bikeModel, paymentId: razorpay_payment_id, amount, pickupLocation }).save();
         await Bike.findOneAndUpdate({ model: bikeModel }, { $inc: { quantity: -1 } });
-
         if (promoCode) await Promo.findOneAndUpdate({ code: promoCode.toUpperCase() }, { $push: { usedBy: phone } });
 
         try {
             const user = await User.findOne({ phone: phone });
             const bike = await Bike.findOne({ model: bikeModel });
-            
-            // 1. Send WhatsApp Notification
             await sendMetaWhatsApp(phone, 'payment_confirmed', [user && user.name ? user.name : "Rider", amount, bikeModel, pickupLocation]);
             
-            // 2. ✨ BEAUTIFUL EMAIL WITH PDF ATTACHMENT ✨
             if (user && user.email) {
                 const pdfBuffer = await createInvoicePDF(newPayment, user, newBooking, bike);
-
                 const emailHtml = `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                         <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 30px 20px; text-align: center; color: white;">
                             <h1 style="margin: 0; font-size: 24px;">Booking Confirmed! 🎉</h1>
-                            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Your ride is ready for pickup.</p>
                         </div>
                         <div style="padding: 30px; background: #ffffff;">
                             <p style="font-size: 16px; color: #333;">Hi <strong>${user.name || 'Rider'}</strong>,</p>
-                            <p style="font-size: 16px; color: #555; line-height: 1.5;">Thank you for choosing <strong>Easy Drive</strong>. Your payment of <strong style="color: #27ae60;">₹${amount}</strong> was successful.</p>
-                            
-                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0;">
-                                <h3 style="margin-top: 0; color: #2d3748; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px;">Booking Summary</h3>
-                                <p style="margin: 8px 0; color: #4a5568;"><strong>Vehicle:</strong> ${bikeModel}</p>
-                                <p style="margin: 8px 0; color: #4a5568;"><strong>Payment ID:</strong> <span style="font-family: monospace;">${razorpay_payment_id}</span></p>
-                                <p style="margin: 8px 0; color: #4a5568;"><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                                <a href="${pickupLocation}" style="display: inline-block; margin-top: 15px; background: #007bff; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold;">📍 Open Maps for Pickup</a>
-                            </div>
-                            
+                            <p style="font-size: 16px; color: #555;">Your payment of <strong style="color: #27ae60;">₹${amount}</strong> was successful.</p>
                             <p style="font-size: 15px; color: #555;">We have attached your official PDF invoice to this email for your records.</p>
-                            
-                            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
-                            <p style="font-size: 14px; color: #718096; margin: 0;">Ride Safe & Stay Green 🍃</p>
-                            <p style="font-size: 14px; color: #2d3748; font-weight: bold; margin: 5px 0 0 0;">The Easy Drive Team</p>
                         </div>
-                    </div>
-                `;
+                    </div>`;
 
                 transporter.sendMail({
-                    from: `"Easy Drive 🛵" <${process.env.EMAIL_USER}>`,
-                    to: user.email,
-                    subject: `Your Easy Drive Booking: ${bikeModel} 🚀`,
-                    html: emailHtml,
-                    attachments: [{
-                        filename: `EasyDrive_Invoice_${razorpay_payment_id}.pdf`,
-                        content: pdfBuffer,
-                        contentType: 'application/pdf'
-                    }]
+                    from: `"Easy Drive 🛵" <${process.env.EMAIL_USER}>`, to: user.email,
+                    subject: `Your Easy Drive Booking: ${bikeModel} 🚀`, html: emailHtml,
+                    attachments: [{ filename: `EasyDrive_Invoice_${razorpay_payment_id}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
                 });
             }
         } catch (err) { console.log("Notification failed", err); }
@@ -410,54 +315,27 @@ app.get('/api/payments/:paymentId/invoice', async (req, res) => {
     try {
         const payment = await Payment.findOne({ paymentId: req.params.paymentId });
         if (!payment) return res.status(404).send("Invoice not found.");
-        
         const user = await User.findOne({ phone: payment.phone });
         const booking = await Booking.findOne({ paymentId: payment.paymentId });
-        let bike = null;
-        if (booking) bike = await Bike.findOne({ model: booking.bikeModel });
-
-        // Reuse the exact same PDF generator for the Admin Panel!
+        let bike = null; if (booking) bike = await Bike.findOne({ model: booking.bikeModel });
         const pdfBuffer = await createInvoicePDF(payment, user, booking, bike);
-
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=EasyDrive_Invoice_${payment.paymentId}.pdf`);
         res.send(pdfBuffer);
-    } catch (error) { 
-        console.error("Invoice Error:", error); 
-        if(!res.headersSent) res.status(500).send("Error generating invoice."); 
-    }
+    } catch (error) { if(!res.headersSent) res.status(500).send("Error generating invoice."); }
 });
 
 // ==========================================
-// 5. INVENTORY & BIKES ROUTES
+// 5. INVENTORY, BIKES & BOOKINGS
 // ==========================================
-app.get('/api/bikes', async (req, res) => {
-    try { res.json(await Bike.find({})); } catch (error) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.get('/api/admin/bikes', async (req, res) => {
-    try { res.json(await Bike.find({})); } catch (error) { res.status(500).json({ error: "Failed" }); }
-});
-
+app.get('/api/bikes', async (req, res) => { try { res.json(await Bike.find({})); } catch (error) { res.status(500).json({ error: "Failed" }); } });
+app.get('/api/admin/bikes', async (req, res) => { try { res.json(await Bike.find({})); } catch (error) { res.status(500).json({ error: "Failed" }); } });
 app.post('/api/admin/bikes', upload.single('bikeImage'), async (req, res) => {
-    try {
-        if (!req.file) return res.status(400).json({ error: "Image required." });
-        await new Bike({ ...req.body, imageUrl: req.file.path }).save();
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: "Failed to save." }); }
+    try { if (!req.file) return res.status(400).json({ error: "Image required." }); await new Bike({ ...req.body, imageUrl: req.file.path }).save(); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed to save." }); }
 });
+app.put('/api/admin/bikes/:id', async (req, res) => { try { await Bike.findByIdAndUpdate(req.params.id, req.body); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.delete('/api/admin/bikes/:id', async (req, res) => { try { await Bike.findByIdAndDelete(req.params.id); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
 
-app.put('/api/admin/bikes/:id', async (req, res) => {
-    try { await Bike.findByIdAndUpdate(req.params.id, req.body); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.delete('/api/admin/bikes/:id', async (req, res) => {
-    try { await Bike.findByIdAndDelete(req.params.id); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-// ==========================================
-// 6. BOOKINGS, HANDOVERS & RETURNS
-// ==========================================
 app.get('/api/bookings/my-rental', async (req, res) => {
     try {
         const booking = await Booking.findOne({ phone: req.query.phone, status: { $in: ['Paid', 'Handed'] } }).sort({ paymentDate: -1 });
@@ -466,149 +344,55 @@ app.get('/api/bookings/my-rental', async (req, res) => {
         res.json({ hasRental: true, booking, bike });
     } catch (e) { res.status(500).json({ error: "Failed" }); }
 });
-
-app.get('/api/bookings/active', async (req, res) => {
-    try {
-        const booking = await Booking.findOne({ phone: req.query.phone, status: 'Paid' }).sort({ paymentDate: -1 });
-        res.json({ booking });
-    } catch (e) { 
-        res.status(500).json({ error: "Failed to fetch active booking" }); 
-    }
-});
-
-app.get('/api/bookings/check-eligibility', async (req, res) => {
-    try {
-        const activeBooking = await Booking.findOne({ phone: req.query.phone, status: { $in: ['Paid', 'Handed'] } });
-        res.json({ canBook: !activeBooking });
-    } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
+app.get('/api/bookings/active', async (req, res) => { try { res.json({ booking: await Booking.findOne({ phone: req.query.phone, status: 'Paid' }).sort({ paymentDate: -1 }) }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.get('/api/bookings/check-eligibility', async (req, res) => { try { res.json({ canBook: !(await Booking.findOne({ phone: req.query.phone, status: { $in: ['Paid', 'Handed'] } })) }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
 app.post('/api/bookings/renew', async (req, res) => {
     try {
         const { phone, amount, paymentId } = req.body;
         const booking = await Booking.findOne({ phone: phone, status: 'Handed' });
         if (!booking) return res.status(400).json({ error: "No active rental found." });
-
         const newDue = new Date(new Date(booking.dueDate).getTime() + (28 * 24 * 60 * 60 * 1000));
-        booking.dueDate = newDue; booking.renewalCount += 1; booking.lastRenewalDate = new Date();
-        await booking.save();
+        booking.dueDate = newDue; booking.renewalCount += 1; booking.lastRenewalDate = new Date(); await booking.save();
         await new Payment({ phone, paymentId: paymentId || 'REN_' + Date.now(), amount, status: 'Success (Renewal)' }).save();
         res.json({ success: true, newDueDate: newDue });
     } catch (error) { res.status(500).json({ error: "Renewal failed." }); }
 });
-
-app.get('/api/admin/all-bookings', async (req, res) => {
-    try { res.json(await Booking.find({ status: { $ne: 'Returned' } }).sort({ paymentDate: -1 })); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.post('/api/admin/bookings/:id/handover', upload.single('customerPhoto'), async (req, res) => {
-    try {
-        const handedDate = new Date();
-        const dueDate = new Date(handedDate.getTime() + (28 * 24 * 60 * 60 * 1000));
-        await Booking.findByIdAndUpdate(req.params.id, { status: 'Handed', handedDate, dueDate, customerPhotoUrl: req.file.path });
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
+app.get('/api/admin/all-bookings', async (req, res) => { try { res.json(await Booking.find({ status: { $ne: 'Returned' } }).sort({ paymentDate: -1 })); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.post('/api/admin/bookings/:id/handover', upload.single('customerPhoto'), async (req, res) => { try { await Booking.findByIdAndUpdate(req.params.id, { status: 'Handed', handedDate: new Date(), dueDate: new Date(Date.now() + (28 * 24 * 60 * 60 * 1000)), customerPhotoUrl: req.file.path }); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
 app.post('/api/admin/bookings/:id/return', async (req, res) => {
     try {
-        const { reason, bikeModel } = req.body;
-        const booking = await Booking.findById(req.params.id);
-        if (!booking) return res.status(404).json({ error: "Booking not found" });
-
-        await new Returned({ phone: booking.phone, bikeModel, returnReason: reason }).save();
-        await Booking.findByIdAndDelete(req.params.id);
-
+        const { reason, bikeModel } = req.body; const booking = await Booking.findById(req.params.id); if (!booking) return res.status(404).json({ error: "Not found" });
+        await new Returned({ phone: booking.phone, bikeModel, returnReason: reason }).save(); await Booking.findByIdAndDelete(req.params.id);
         if (!reason.includes('Damaged')) await Bike.findOneAndUpdate({ model: bikeModel }, { $inc: { quantity: 1 } });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: "Failed" }); }
 });
+app.get('/api/admin/returned-list', async (req, res) => { try { const returns = await Returned.find().sort({ returnDate: -1 }).lean(); const data = await Promise.all(returns.map(async r => { const user = await User.findOne({ phone: r.phone }).lean(); return { ...r, customerName: user && user.name ? user.name : 'Pending KYC' }; })); res.json(data); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.get('/api/admin/damage-list', async (req, res) => { try { const damaged = await Returned.find({ returnReason: { $regex: 'Damage', $options: 'i' } }).sort({ returnDate: -1 }).lean(); const data = await Promise.all(damaged.map(async d => { const user = await User.findOne({ phone: d.phone }).lean(); return { ...d, customerName: user && user.name ? user.name : 'Pending KYC' }; })); res.json(data); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.post('/api/admin/repair-complete', async (req, res) => { try { await Returned.findByIdAndUpdate(req.body.bookingId, { returnReason: "Repaired & Restocked" }); await Bike.findOneAndUpdate({ model: req.body.bikeModel }, { $inc: { quantity: 1 } }); res.json({ success: true }); } catch (error) { res.status(500).json({ error: "Failed" }); } });
 
-app.get('/api/admin/returned-list', async (req, res) => {
-    try {
-        const returns = await Returned.find().sort({ returnDate: -1 }).lean();
-        const data = await Promise.all(returns.map(async r => {
-            const user = await User.findOne({ phone: r.phone }).lean();
-            return { ...r, customerName: user && user.name ? user.name : 'Pending KYC' };
-        }));
-        res.json(data);
-    } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.get('/api/admin/damage-list', async (req, res) => {
-    try {
-        const damaged = await Returned.find({ returnReason: { $regex: 'Damage', $options: 'i' } }).sort({ returnDate: -1 }).lean();
-        const data = await Promise.all(damaged.map(async d => {
-            const user = await User.findOne({ phone: d.phone }).lean();
-            return { ...d, customerName: user && user.name ? user.name : 'Pending KYC' };
-        }));
-        res.json(data);
-    } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.post('/api/admin/repair-complete', async (req, res) => {
-    try {
-        await Returned.findByIdAndUpdate(req.body.bookingId, { returnReason: "Repaired & Restocked" });
-        await Bike.findOneAndUpdate({ model: req.body.bikeModel }, { $inc: { quantity: 1 } });
-        res.json({ success: true });
-    } catch (error) { res.status(500).json({ error: "Failed" }); }
-});
-// --- ✨ NEW: BATTERY SWAP LOGIC ✨ ---
+// --- BATTERY SWAPS ---
 app.post('/api/bookings/swap', async (req, res) => {
     try {
-        const { phone, stationId } = req.body;
-        const booking = await Booking.findOne({ phone: phone, status: 'Handed' });
-        if (!booking) return res.status(400).json({ error: "No active vehicle." });
-
+        const { phone, stationId } = req.body; const booking = await Booking.findOne({ phone: phone, status: 'Handed' }); if (!booking) return res.status(400).json({ error: "No active vehicle." });
         const station = await Station.findById(stationId);
-        
-        // 1. Save the History Record ✨
-        await new Swap({ 
-            phone, 
-            stationName: station ? station.name : "Unknown Hub",
-            stationAddress: station ? station.address : "N/A"
-        }).save();
-
-        // 2. Reset Battery & Update Station
-        booking.lastSwapDate = new Date();
-        await booking.save();
+        await new Swap({ phone, stationName: station ? station.name : "Unknown Hub", stationAddress: station ? station.address : "N/A" }).save();
+        booking.lastSwapDate = new Date(); await booking.save();
         if (stationId) await Station.findByIdAndUpdate(stationId, { $inc: { batteriesAvailable: -1 } });
-
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: "Swap failed" }); }
 });
+app.get('/api/bookings/swap-history', async (req, res) => { try { res.json(await Swap.find({ phone: req.query.phone }).sort({ date: -1 })); } catch (e) { res.status(500).json({ error: "Failed" }); } });
 
-
-// --- ✨ NEW: GET USER SWAP HISTORY ✨ ---
-app.get('/api/bookings/swap-history', async (req, res) => {
-    try {
-        const history = await Swap.find({ phone: req.query.phone }).sort({ date: -1 });
-        res.json(history);
-    } catch (e) { 
-        res.status(500).json({ error: "Failed to fetch history" }); 
-    }
-});
 // ==========================================
-// 7. PROMOS, ADMIN & OTHER ROUTES
+// 6. STATIONS, PROMOS & COMPLAINTS
 // ==========================================
-app.post('/api/admin/login', (req, res) => {
-    if (req.body.key === "admin123") res.json({ success: true, token: "secure_admin_session_token" });
-    else res.status(401).json({ error: "Invalid Key" });
-});
-
-// ✨ FETCH USERS WITH REFERRAL DATA
-app.get('/api/admin/users', async (req, res) => {
-    try { res.json(await User.find({}).sort({ createdAt: -1 })); } catch (error) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.get('/api/admin/payments', async (req, res) => {
-    try { res.json(await Payment.find({}).sort({ createdAt: -1 })); } catch (error) { res.status(500).json({ error: "Failed" }); }
-});
-
+app.post('/api/admin/login', (req, res) => { if (req.body.key === "admin123") res.json({ success: true, token: "secure_admin_session_token" }); else res.status(401).json({ error: "Invalid Key" }); });
+app.get('/api/admin/users', async (req, res) => { try { res.json(await User.find({}).sort({ createdAt: -1 })); } catch (error) { res.status(500).json({ error: "Failed" }); } });
+app.get('/api/admin/payments', async (req, res) => { try { res.json(await Payment.find({}).sort({ createdAt: -1 })); } catch (error) { res.status(500).json({ error: "Failed" }); } });
 app.get('/api/admin/payments/details/:paymentId', async (req, res) => {
     try {
-        const payment = await Payment.findOne({ paymentId: req.params.paymentId }).lean();
-        if (!payment) return res.status(404).json({ error: "Not found" });
+        const payment = await Payment.findOne({ paymentId: req.params.paymentId }).lean(); if (!payment) return res.status(404).json({ error: "Not found" });
         const user = await User.findOne({ phone: payment.phone }).lean();
         res.json({ name: user ? user.name : 'Customer', phone: payment.phone, email: user ? user.email : 'N/A', amount: payment.amount, status: payment.status, date: payment.createdAt, paymentId: payment.paymentId, method: "UPI/Card", bankDetails: "Razorpay Secure" });
     } catch (e) { res.status(500).json({ error: "Failed" }); }
@@ -623,54 +407,20 @@ app.post('/api/promo/validate', async (req, res) => {
         } else { res.status(400).json({ error: "Invalid promo code." }); }
     } catch (e) { res.status(500).json({ error: "Failed" }); }
 });
+app.get('/api/admin/promos', async (req, res) => { try { res.json(await Promo.find().sort({ createdAt: -1 })); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.post('/api/admin/broadcast', async (req, res) => { try { const { templateName, promoCode, discountAmount } = req.body; const codeUpper = promoCode.toUpperCase(); if (!(await Promo.findOne({ code: codeUpper }))) await new Promo({ code: codeUpper, discountAmount }).save(); res.json({ success: true, message: `Saved & Broadcasted!` }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.delete('/api/admin/promos/:id', async (req, res) => { try { await Promo.findByIdAndDelete(req.params.id); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
 
-app.get('/api/admin/promos', async (req, res) => {
-    try { res.json(await Promo.find().sort({ createdAt: -1 })); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
+app.get('/api/stations', async (req, res) => { try { res.json(await Station.find()); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.post('/api/admin/stations', async (req, res) => { try { await new Station(req.body).save(); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
+app.delete('/api/admin/stations/:id', async (req, res) => { try { await Station.findByIdAndDelete(req.params.id); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); } });
 
-app.post('/api/admin/broadcast', async (req, res) => {
-    try {
-        const { templateName, promoCode, discountAmount } = req.body;
-        const codeUpper = promoCode.toUpperCase();
-        if (!(await Promo.findOne({ code: codeUpper }))) await new Promo({ code: codeUpper, discountAmount }).save();
-        res.json({ success: true, message: `Saved & Broadcasted!` });
-    } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.delete('/api/admin/promos/:id', async (req, res) => {
-    try { await Promo.findByIdAndDelete(req.params.id); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.get('/api/stations', async (req, res) => {
-    try { res.json(await Station.find()); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-app.post('/api/admin/stations', async (req, res) => {
-    try { await new Station(req.body).save(); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-app.delete('/api/admin/stations/:id', async (req, res) => {
-    try { await Station.findByIdAndDelete(req.params.id); res.json({ success: true }); } catch (e) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.post('/api/complaints', upload.single('complaintImage'), async (req, res) => {
-    try {
-        if (!req.file) return res.status(400).json({ error: "Camera image required." });
-        await new Complaint({ phone: req.body.phone, issue: req.body.issue, imageUrl: req.file.path }).save();
-        res.json({ success: true });
-    } catch (error) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.get('/api/complaints', async (req, res) => {
-    try { res.json(await Complaint.find(req.query.phone ? { phone: req.query.phone } : {}).sort({ createdAt: -1 })); } 
-    catch (error) { res.status(500).json({ error: "Failed" }); }
-});
-
-app.put('/api/admin/complaints/:id/solve', async (req, res) => {
-    try { await Complaint.findByIdAndUpdate(req.params.id, { status: 'Solved' }); res.json({ success: true }); } 
-    catch (error) { res.status(500).json({ error: "Failed" }); }
-});
+app.post('/api/complaints', upload.single('complaintImage'), async (req, res) => { try { if (!req.file) return res.status(400).json({ error: "Camera image required." }); await new Complaint({ phone: req.body.phone, issue: req.body.issue, imageUrl: req.file.path }).save(); res.json({ success: true }); } catch (error) { res.status(500).json({ error: "Failed" }); } });
+app.get('/api/complaints', async (req, res) => { try { res.json(await Complaint.find(req.query.phone ? { phone: req.query.phone } : {}).sort({ createdAt: -1 })); } catch (error) { res.status(500).json({ error: "Failed" }); } });
+app.put('/api/admin/complaints/:id/solve', async (req, res) => { try { await Complaint.findByIdAndUpdate(req.params.id, { status: 'Solved' }); res.json({ success: true }); } catch (error) { res.status(500).json({ error: "Failed" }); } });
 
 // ==========================================
-// 8. UTILITIES (WhatsApp API)
+// 7. UTILITIES & ADMIN UPDATE
 // ==========================================
 async function sendMetaWhatsApp(toPhone, templateName, variables = []) {
     const url = `https://graph.facebook.com/v18.0/${process.env.META_PHONE_ID}/messages`;
@@ -683,29 +433,19 @@ async function sendMetaWhatsApp(toPhone, templateName, variables = []) {
     } catch (error) { console.error("Failed to connect to Meta API:", error); }
 }
 
-// --- ✨ ADMIN PORTAL: OVERRIDE CUSTOMER KYC ✨ ---
 app.post('/api/admin/update-kyc', upload.fields([{ name: 'aadhaar' }, { name: 'pan' }, { name: 'addressBill' }]), async (req, res) => {
     try {
         const { phone } = req.body;
         const updateData = {};
-        
         if (req.files.pan) updateData.panUrl = req.files.pan[0].path;
         if (req.files.aadhaar) updateData.aadhaarUrl = req.files.aadhaar[0].path;
-        if (req.files.addressBill) updateData.addressBillUrl = req.files.addressBill[0].path; // ✨ NEW
+        if (req.files.addressBill) updateData.addressBillUrl = req.files.addressBill[0].path; 
         
         await User.findOneAndUpdate({ phone }, { $set: updateData });
         res.json({ success: true, message: "Admin updated KYC successfully." });
-    } catch (e) {
-        res.status(500).json({ error: "Admin upload failed." });
-    }
+    } catch (e) { res.status(500).json({ error: "Admin upload failed." }); }
 });
 
-// ==========================================
-// 🚨 SERVER START 🚨
-// ==========================================
-// ==========================================
-// 🚨 SERVER START 🚨
-// ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log('====================================');

@@ -1,3 +1,33 @@
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDtbsjUe1573zXP1f21WGb06MaTKW5Td9Y",
+  authDomain: "easydrive-4d9cd.firebaseapp.com",
+  projectId: "easydrive-4d9cd",
+  storageBucket: "easydrive-4d9cd.firebasestorage.app",
+  messagingSenderId: "134249286719",
+  appId: "1:134249286719:web:1f55e1247d34a5c50e3c8a",
+  measurementId: "G-K88YSSQYRP"
+};
+
+// Initialize Firebase);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// Create the invisible reCAPTCHA when the app loads
+window.onload = function() {
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+            // reCAPTCHA solved
+        }
+    });
+};
+
 // ==========================================
 // ✨ EASY DRIVE: COMPLETE APP.JS ✨
 // ==========================================
@@ -107,34 +137,6 @@ function closeCustomAlert() {
     if (customAlertCallback) { customAlertCallback(); customAlertCallback = null; }
 }
 
-// --- ✨ RESEND OTP TIMER LOGIC ✨ ---
-let loginTimerInterval, signupTimerInterval;
-function startResendTimer(type) {
-    let timeLeft = 30;
-    const timerText = document.getElementById(`${type}-resend-timer`);
-    const resendBtn = document.getElementById(`${type}-resend-btn`);
-    const timeSpan = document.getElementById(type === 'login' ? 'l-timer' : 's-timer');
-    
-    timerText.classList.remove('hidden');
-    resendBtn.classList.add('hidden');
-    timeSpan.innerText = timeLeft;
-
-    clearInterval(type === 'login' ? loginTimerInterval : signupTimerInterval);
-
-    const interval = setInterval(() => {
-        timeLeft--;
-        timeSpan.innerText = timeLeft;
-        if(timeLeft <= 0) {
-            clearInterval(interval);
-            timerText.classList.add('hidden');
-            resendBtn.classList.remove('hidden');
-        }
-    }, 1000);
-
-    if(type === 'login') loginTimerInterval = interval;
-    else signupTimerInterval = interval;
-}
-
 // --- 3. SIDEBAR & REFERRALS ---
 async function populateSidebar() {
     const phone = localStorage.getItem('easyDriveUser');
@@ -193,7 +195,7 @@ function shareReferral() {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
 }
 
-// --- 4. PHONE VALIDATION & AUTHENTICATION ---
+// --- 4. PHONE VALIDATION & FIREBASE AUTHENTICATION ---
 function setupPhoneValidation(inputId, btnId) {
     const input = document.getElementById(inputId);
     const btn = document.getElementById(btnId);
@@ -227,90 +229,124 @@ function toggleAuth() {
     }
 }
 
+// ==========================================
+// ✨ NEW FIREBASE LOGIN FLOW ✨
+// ==========================================
+let confirmationResultObj;
+
 async function sendLoginOTP() {
-    const phone = document.getElementById('login-phone').value;
-    if (phone.length < 10) return showToast("Enter a valid phone number", "error");
-    document.getElementById('loader-text').innerText = "Sending OTP...";
-    document.getElementById('global-loader').classList.remove('hidden');
+    const phoneInput = document.getElementById('login-phone').value.trim();
+    if (phoneInput.length !== 10) return showToast("Enter a valid 10-digit number.", "error");
+
+    const fullPhoneNumber = "+91" + phoneInput; 
+    
+    const btn = document.getElementById('login-get-otp-btn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
 
     try {
-        const response = await fetch('/api/auth/send-login-otp', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone })
-        });
-        const data = await response.json();
-        document.getElementById('global-loader').classList.add('hidden');
-
-        if (!response.ok) {
-            showToast(data.error, "error");
-            if (response.status === 404) setTimeout(() => { toggleAuth(); document.getElementById('signup-phone').value = phone; }, 1500);
-            return;
-        }
-        showToast("OTP Sent!", "success");
-        document.getElementById('login-phone').disabled = true;
-        document.getElementById('login-get-otp-btn').classList.add('hidden');
+        confirmationResultObj = await auth.signInWithPhoneNumber(fullPhoneNumber, window.recaptchaVerifier);
+        
+        showToast("SMS Sent Successfully!", "success");
         document.getElementById('login-otp-section').classList.remove('hidden');
         document.getElementById('login-submit-btn').classList.remove('hidden');
-        
-        startResendTimer('login'); // ✨ Start Timer
-    } catch (error) { document.getElementById('global-loader').classList.add('hidden'); showToast("Server error.", "error"); }
+        btn.innerHTML = 'Send OTP';
+        btn.disabled = false;
+    } catch (error) {
+        console.error("SMS Error:", error);
+        showToast("Failed to send SMS. Try again.", "error");
+        btn.innerHTML = 'Send OTP';
+        btn.disabled = false;
+        window.recaptchaVerifier.render().then(function(widgetId) { grecaptcha.reset(widgetId); });
+    }
 }
 
 async function loginUser() {
-    const phone = document.getElementById('login-phone').value;
-    const otp = document.getElementById('login-otp-input').value;
-    if (otp.length < 4) return showToast("Enter a valid OTP", "error");
+    const otp = document.getElementById('login-otp-input').value.trim();
+    if (otp.length < 4) return showToast("Enter the SMS code.", "error");
 
-    document.getElementById('global-loader').classList.remove('hidden');
+    const btn = document.getElementById('login-submit-btn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+
     try {
-        const response = await fetch('/api/auth/verify-login', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, otp })
+        const result = await confirmationResultObj.confirm(otp);
+        const rawPhone = result.user.phoneNumber.replace('+91', '');
+        
+        const response = await fetch('/api/auth/login-firebase', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: rawPhone })
         });
+        
         const data = await response.json();
-        document.getElementById('global-loader').classList.add('hidden');
-
-        if (!response.ok) return showToast(data.error, "error");
-
-        localStorage.setItem('easyDriveUser', phone);
-        if (typeof populateSidebar === "function") populateSidebar();
-
-        if (data.isVerified) {
-            goToScreen('dashboard-screen'); fetchAndRenderVehicles('All');
-        } else { goToScreen('upload-screen'); }
-    } catch (error) { document.getElementById('global-loader').classList.add('hidden'); showToast("Server error.", "error"); }
+        
+        if (response.ok) {
+            localStorage.setItem('easyDriveUser', rawPhone);
+            showToast("Login Successful!", "success");
+            if (data.isVerified) { goToScreen('dashboard-screen'); fetchAndRenderVehicles('All'); } else { goToScreen('upload-screen'); }
+        } else {
+            showToast(data.error || "Please create an account first.", "error");
+            btn.innerHTML = 'Login';
+        }
+    } catch (error) {
+        showToast("Invalid OTP Code.", "error");
+        btn.innerHTML = 'Login';
+    }
 }
 
-function sendSignupOTP() {
-    const phoneInput = document.getElementById('signup-phone').value;
-    if (!phoneInput || phoneInput.length < 10) {
-        return openCustomAlert("Invalid Number", "Please enter a valid 10-digit phone number first.", "fa-circle-xmark", "#e53e3e", "Try Again");
+async function sendSignupOTP() {
+    const phoneInput = document.getElementById('signup-phone').value.trim();
+    if (phoneInput.length !== 10) return openCustomAlert("Invalid Number", "Please enter a valid 10-digit phone number first.", "fa-circle-xmark", "#e53e3e", "Try Again");
+
+    const fullPhoneNumber = "+91" + phoneInput; 
+    const btn = document.getElementById('signup-get-otp-btn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
+
+    try {
+        confirmationResultObj = await auth.signInWithPhoneNumber(fullPhoneNumber, window.recaptchaVerifier);
+        showToast("SMS Sent Successfully!", "success");
+        document.getElementById('signup-otp-section').classList.remove('hidden');
+        btn.innerHTML = 'Send OTP';
+        btn.disabled = false;
+    } catch (error) {
+        showToast("Failed to send SMS. Try again.", "error");
+        btn.innerHTML = 'Send OTP';
+        btn.disabled = false;
+        window.recaptchaVerifier.render().then(function(widgetId) { grecaptcha.reset(widgetId); });
     }
-    
-    openCustomAlert("OTP Sent!", "Successfully sent OTP to your WhatsApp.", "fa-circle-check", "#27ae60", "Enter OTP");
-    document.getElementById('signup-otp-section').classList.remove('hidden');
-    
-    startResendTimer('signup'); // ✨ Start Timer
 }
 
 async function signupUser() {
     const name = document.getElementById('signup-name').value;
     const email = document.getElementById('signup-email').value;
     const phone = document.getElementById('signup-phone').value;
-    const referralCode = document.getElementById('signup-referral').value; // ✨ Get Referral Code
+    const referralCode = document.getElementById('signup-referral').value; 
+    const otp = document.getElementById('signup-otp-input').value.trim();
     
     if (!name || !email || phone.length < 10) return showToast("Please fill all required fields.", "error");
+    if (!otp) return showToast("Please enter the SMS OTP.", "error");
+
+    document.getElementById('global-loader').classList.remove('hidden');
 
     try {
-        const response = await fetch('/api/auth/signup', {
+        const result = await confirmationResultObj.confirm(otp);
+        const rawPhone = result.user.phoneNumber.replace('+91', '');
+
+        const response = await fetch('/api/auth/signup-firebase', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ name, email, phone, referralCode }) // ✨ Send Referral
+            body: JSON.stringify({ name, email, phone: rawPhone, referralCode }) 
         });
+        
         const data = await response.json();
+        document.getElementById('global-loader').classList.add('hidden');
         if (!response.ok) return showToast(data.error, "error");
 
-        localStorage.setItem('easyDriveUser', phone);
+        localStorage.setItem('easyDriveUser', rawPhone);
         if (typeof populateSidebar === "function") populateSidebar();
         goToScreen('upload-screen'); 
-    } catch (error) { showToast("Server error.", "error"); }
+    } catch (error) { 
+        document.getElementById('global-loader').classList.add('hidden');
+        showToast("Invalid OTP or Server error.", "error"); 
+    }
 }
 
 function logoutUser() { localStorage.removeItem('easyDriveUser'); window.location.reload(); }
@@ -328,6 +364,7 @@ function previewDoc(event, previewElementId) {
         reader.readAsDataURL(file);
     }
 }
+
 // ==========================================
 // ✨ CORE FUNCTION: Save KYC with Strict AI & Timer ✨
 // ==========================================
@@ -335,10 +372,9 @@ async function saveKYC() {
     const manualPan = document.getElementById('manual-pan').value.trim().toUpperCase();
     const manualAadhaar = document.getElementById('manual-aadhaar').value.replace(/\s/g, '');
     
-    // Using IDs is safer now that we have 3 files
     const panFile = document.querySelectorAll('.input-file')[0].files[0];
     const aadhaarFile = document.querySelectorAll('.input-file')[1].files[0];     
-    const billFile = document.getElementById('bill-file').files[0]; // ✨ NEW
+    const billFile = document.getElementById('bill-file').files[0]; 
 
     if (!manualPan || !manualAadhaar) return showToast("Please enter both ID numbers.", "error");
     if (!aadhaarFile || !panFile || !billFile) return showToast("Please upload Aadhaar, PAN, AND an Address Bill.", "error");
@@ -346,10 +382,7 @@ async function saveKYC() {
     const loader = document.getElementById('global-loader');
     loader.classList.remove('hidden');
 
-    // ✨ BEAUTIFUL REAL-TIME STOPWATCH TIMER ✨
     let seconds = 0;
-    
-    // Create a helper function to draw the beautiful HTML
     const renderBeautifulTimer = (sec) => {
         document.getElementById('loader-text').innerHTML = `
             <div class="ai-loader-container">
@@ -359,8 +392,7 @@ async function saveKYC() {
         `;
     };
 
-    renderBeautifulTimer(seconds); // Show 0s immediately
-    
+    renderBeautifulTimer(seconds); 
     const processingTimer = setInterval(() => {
         seconds++;
         renderBeautifulTimer(seconds);
@@ -368,7 +400,6 @@ async function saveKYC() {
 
     try {
         const formData = new FormData();
-// ... (the rest of your try/catch block stays exactly the same)
         formData.append('phone', localStorage.getItem('easyDriveUser'));
         formData.append('manualPan', manualPan);       
         formData.append('manualAadhaar', manualAadhaar); 
@@ -376,11 +407,9 @@ async function saveKYC() {
         formData.append('aadhaar', aadhaarFile);
         formData.append('addressBill', billFile);
 
-        // Fetch must use the Relative path for your Live website (no http://localhost:3000)
         const response = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await response.json();
         
-        // Stop timer immediately
         clearInterval(processingTimer);
         loader.classList.add('hidden');
         document.getElementById('loader-text').innerText = "Processing...";
@@ -394,7 +423,6 @@ async function saveKYC() {
             goToScreen('dashboard-screen'); 
             fetchAndRenderVehicles('All');
         } else { 
-            // AI REJECTED (Text mismatch or bad rotation)
             openCustomAlert("Verification Mismatch ❌", data.error, "fa-file-circle-exclamation", "#e53e3e", "Take New Photo");
         }
     } catch (error) { 
@@ -553,6 +581,10 @@ function renderVehiclesToGrid(filterType = "All") {
                 
                 ${priceHtml}
                 ${buttonHtml}
+                
+                <button class="btn btn-outline w-100 mt-10" style="border-color: #805ad5; color: #805ad5;" onclick="open3DShowroom('/models/electric-scooty.glb')">
+                    <i class="fa-solid fa-vr-cardboard"></i> View in 3D
+                </button>
             </div>`;
         grid.appendChild(card);
     });
@@ -567,6 +599,8 @@ function filterVehicles(type, btnElement) {
 // --- 8. PROMO CODE LOGIC ---
 let currentCheckoutSubtotal = 0;
 let appliedPromoDiscount = 0;
+let currentAppliedPromoCode = "";
+
 async function applyPromoCode() {
     const codeInput = document.getElementById('promo-code-input').value.trim();
     const phone = localStorage.getItem('easyDriveUser');
@@ -857,18 +891,14 @@ async function viewMyBike() {
         document.getElementById('global-loader').classList.add('hidden');
         document.getElementById('my-bike-modal').classList.remove('hidden');
 
-        // ✨ LIVE TELEMATICS SIMULATION ✨
         // ✨ LIVE TELEMATICS & LOW BATTERY NOTIFICATIONS ✨
-        if (data.booking.status === 'Handed') {
-            // Calculate EXACT battery based on time since they picked it up or last swapped it
+        if (data.booking && data.booking.status === 'Handed') {
             const lastSwapTime = data.booking.lastSwapDate ? new Date(data.booking.lastSwapDate) : new Date(data.booking.handedDate);
             const minutesSinceSwap = (new Date() - lastSwapTime) / (1000 * 60);
             
-            // Simulation: Bike loses 1% battery every 5 minutes (Change this math for faster/slower drain)
             let simulatedBattery = 100 - Math.floor(minutesSinceSwap * 0.2); 
-            
             if (simulatedBattery > 100) simulatedBattery = 100;
-            if (simulatedBattery < 5) simulatedBattery = 5; // Absolute minimum
+            if (simulatedBattery < 5) simulatedBattery = 5; 
 
             const maxRange = data.bike ? data.bike.rangeKms : 80;
             const simulatedRange = Math.round(maxRange * (simulatedBattery / 100));
@@ -882,7 +912,6 @@ async function viewMyBike() {
             document.getElementById('my-bike-motor').style.borderColor = "rgba(74, 222, 128, 0.4)";
             document.getElementById('my-bike-motor').style.background = "rgba(74, 222, 128, 0.2)";
 
-            // 🚨 LOW BATTERY APP NOTIFICATION 🚨
             if (simulatedBattery <= 25 && !window.lowBatteryNotified) {
                 document.getElementById('live-battery-fill').style.background = 'linear-gradient(to top, #ef4444, #f87171)';
                 document.getElementById('live-battery-text').style.color = '#f87171';
@@ -893,17 +922,16 @@ async function viewMyBike() {
                     "fa-battery-quarter", 
                     "#e53e3e", 
                     "Find Hub", 
-                    () => openStationsScreen() // Automatically opens the map when they click "Find Hub"
+                    () => openStationsScreen() 
                 );
-                window.lowBatteryNotified = true; // Stops it from popping up every single second
+                window.lowBatteryNotified = true; 
             } else if (simulatedBattery > 25) {
                 document.getElementById('live-battery-fill').style.background = 'linear-gradient(to top, #22c55e, #10b981)';
                 document.getElementById('live-battery-text').style.color = 'white';
                 window.lowBatteryNotified = false;
             }
             
-        } else {
-            // Parked Status (Before Handover)
+        } else if (data.booking) {
             document.getElementById('live-battery-text').innerText = '100';
             document.getElementById('live-battery-fill').style.height = '100%';
             document.getElementById('live-range-text').innerText = `${data.bike ? data.bike.rangeKms : 80} km`;
@@ -984,7 +1012,7 @@ async function viewMyBike() {
 
 // --- ✨ LIVE MAPS & GEOLOCATION LOGIC ✨ ---
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth's radius in km
+    const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
@@ -1002,17 +1030,11 @@ async function openStationsScreen() {
 
     if (!window.swapMap) {
         const telanganaBounds = [[15.8000, 77.2000], [19.9500, 81.0000]];
-        window.swapMap = L.map('swap-map', {
-            maxBounds: telanganaBounds,
-            maxBoundsViscosity: 1.0,
-            minZoom: 6
-        }).setView([17.8749, 79.1124], 7);
-
+        window.swapMap = L.map('swap-map', { maxBounds: telanganaBounds, maxBoundsViscosity: 1.0, minZoom: 6 }).setView([17.8749, 79.1124], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.swapMap);
     } else {
         window.swapMap.eachLayer((l) => { if (l instanceof L.Marker) l.remove(); });
     }
-    
     setTimeout(() => { window.swapMap.invalidateSize(); }, 400);
     
     try {
@@ -1021,28 +1043,19 @@ async function openStationsScreen() {
         const bounds = L.latLngBounds();
         let hasValidPoints = false;
         
-        const markersCluster = L.markerClusterGroup({
-            chunkedLoading: true,
-            maxClusterRadius: 50 
-        });
+        const markersCluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
 
         stations.forEach(s => {
-            const exactLat = parseFloat(s.lat);
-            const exactLng = parseFloat(s.lng);
-
+            const exactLat = parseFloat(s.lat); const exactLng = parseFloat(s.lng);
             if(!isNaN(exactLat) && !isNaN(exactLng)) {
                 const marker = L.marker([exactLat, exactLng]).addTo(window.swapMap);
-                
                 marker.bindTooltip(`
                     <div style="text-align: center; min-width: 140px; padding: 5px;">
                         <b style="color: #007bff;">${s.name}</b><br>
                         <span style="color: #27ae60; font-weight: bold;">🔋 ${s.batteriesAvailable} Available</span><br>
-                        <div style="margin-top:5px; color:#007bff; font-size:0.75rem;">
-                            <i class="fa-solid fa-diamond-turn-right"></i> Click to Navigate
-                        </div>
+                        <div style="margin-top:5px; color:#007bff; font-size:0.75rem;"><i class="fa-solid fa-diamond-turn-right"></i> Click to Navigate</div>
                     </div>`, { sticky: true });
 
-                // Fix: Correct Google Maps URL and exactLat variable
                 marker.on('click', () => window.open(`https://maps.google.com/?q=${exactLat},${exactLng}`, '_blank'));
                 markersCluster.addLayer(marker);
                 bounds.extend([exactLat, exactLng]);
@@ -1051,14 +1064,11 @@ async function openStationsScreen() {
         });
         window.swapMap.addLayer(markersCluster);
 
-        if (hasValidPoints) {
-            window.swapMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-        }
+        if (hasValidPoints) window.swapMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
-                const uLat = pos.coords.latitude;
-                const uLng = pos.coords.longitude;
+                const uLat = pos.coords.latitude; const uLng = pos.coords.longitude;
                 stations.forEach(s => s.distance = calculateDistance(uLat, uLng, s.lat, s.lng));
                 stations.sort((a, b) => a.distance - b.distance);
                 renderStationCards(stations, true);
@@ -1082,89 +1092,51 @@ function renderStationCards(stations, hasGPS) {
                         <p class="text-sm"><i class="fa-solid fa-location-dot"></i> ${s.address}</p>
                         ${hasGPS ? `<span class="text-red font-bold">${s.distance} km away</span>` : ''}
                         <div style="margin-top: 10px;">
-                            <span style="background: #e6ffed; color: #10b981; padding: 4px 8px; border-radius: 4px; font-weight: bold;">
-                                🔋 ${s.batteriesAvailable} Batteries Available
-                            </span>
+                            <span style="background: #e6ffed; color: #10b981; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🔋 ${s.batteriesAvailable} Batteries Available</span>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="window.open('https://maps.google.com/?q=${s.lat},${s.lng}', '_blank')">
-                        <i class="fa-solid fa-diamond-turn-right"></i> Navigate
-                    </button>
+                    <button class="btn btn-primary" onclick="window.open('https://maps.google.com/?q=${s.lat},${s.lng}', '_blank')"><i class="fa-solid fa-diamond-turn-right"></i> Navigate</button>
                 </div>
             </div>`;
     });
 }
+
 // ==========================================
 // ✨ BATTERY EXCHANGE & GEOFENCE WORKFLOW ✨
 // ==========================================
-let currentSwapStationId = null;
-let currentSwapStationLat = null;
-let currentSwapStationLng = null;
+let currentSwapStationId = null; let currentSwapStationLat = null; let currentSwapStationLng = null;
 
 function openSwapAction(stationId, stationName, lat, lng) {
-    currentSwapStationId = stationId;
-    currentSwapStationLat = lat; // Store destination Latitude
-    currentSwapStationLng = lng; // Store destination Longitude
-    
+    currentSwapStationId = stationId; currentSwapStationLat = lat; currentSwapStationLng = lng; 
     document.getElementById('swap-dest-name').innerText = stationName;
     document.getElementById('swap-maps-btn').href = `https://maps.google.com/?q=${lat},${lng}`;
     document.getElementById('swap-action-modal').classList.remove('hidden');
 }
 
-// ✨ NEW: GPS Geofence Security Check
 function markStationReached() {
-    if (!navigator.geolocation) {
-        return showToast("GPS is not supported on this device.", "error");
-    }
+    if (!navigator.geolocation) return showToast("GPS is not supported on this device.", "error");
 
-    // Change button to show it is tracking them
     const btn = document.querySelector('#swap-action-modal .btn-primary');
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying Location...';
     btn.disabled = true;
 
-    // Ping their exact GPS coordinates right now
     navigator.geolocation.getCurrentPosition((pos) => {
-        const userLat = pos.coords.latitude;
-        const userLng = pos.coords.longitude;
-        
-        // Calculate distance between user and the hub (in km)
+        const userLat = pos.coords.latitude; const userLng = pos.coords.longitude;
         const distanceStr = calculateDistance(userLat, userLng, currentSwapStationLat, currentSwapStationLng);
         const distanceKm = parseFloat(distanceStr);
+        btn.innerHTML = originalText; btn.disabled = false;
 
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-
-        // SECURITY: Are they within 300 meters (0.3 km) of the Hub?
         if (distanceKm <= 0.3) {
             document.getElementById('swap-action-modal').classList.add('hidden');
-            openCustomAlert(
-                "Exchange Battery", 
-                "Location verified! ✅\n\nPlease hand over your empty battery to the staff. Confirm below to instantly update your vehicle's telematics to 100%.", 
-                "fa-battery-full", 
-                "#2ecc71", 
-                "Confirm Exchange", 
-                processBatterySwap
-            );
+            openCustomAlert("Exchange Battery", "Location verified! ✅\n\nPlease hand over your empty battery to the staff. Confirm below to instantly update your vehicle's telematics to 100%.", "fa-battery-full", "#2ecc71", "Confirm Exchange", processBatterySwap);
         } else {
-            // Block them! They are too far away!
-            openCustomAlert(
-                "Location Mismatch ❌", 
-                `Geofence locked. You are still ${distanceKm} km away from the hub.\n\nYou must be physically at the location to confirm the exchange.`, 
-                "fa-location-crosshairs", 
-                "#e53e3e", 
-                "Understood"
-            );
+            openCustomAlert("Location Mismatch ❌", `Geofence locked. You are still ${distanceKm} km away from the hub.\n\nYou must be physically at the location to confirm the exchange.`, "fa-location-crosshairs", "#e53e3e", "Understood");
         }
     }, (err) => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        btn.innerHTML = originalText; btn.disabled = false;
         showToast("Failed to get your location. Please turn on your phone's GPS location.", "error");
-    }, {
-        enableHighAccuracy: true, // Forces phone to use real GPS, not just WiFi estimation
-        timeout: 10000,
-        maximumAge: 0
-    });
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 }
 
 async function processBatterySwap() {
@@ -1183,16 +1155,13 @@ async function processBatterySwap() {
         if (data.success) {
             openCustomAlert("Battery Exchanged! 🔋", "Your vehicle is now back at 100%. Safe travels!", "fa-bolt", "#27ae60", "View Dashboard", () => viewMyBike());
             window.lowBatteryNotified = false; 
-        } else {
-            showToast(data.error, "error");
-        }
+        } else { showToast(data.error, "error"); }
     } catch (e) {
         document.getElementById('global-loader').classList.add('hidden');
         showToast("Error processing exchange.", "error");
     }
 }
 
-// ✨ LOAD SWAP HISTORY
 async function viewSwapHistory() {
     const phone = localStorage.getItem('easyDriveUser');
     const list = document.getElementById('swap-history-list');
@@ -1217,7 +1186,39 @@ async function viewSwapHistory() {
     } catch (e) { list.innerHTML = 'Error loading history.'; }
 }
 
-// ✨ FAQ TOGGLE
-function toggleFAQ(element) {
-    element.classList.toggle('active');
+// --- ✨ THREE.JS 3D SHOWROOM ENGINE ✨ ---
+let showroomScene, showroomCamera, showroomRenderer, showroomControls, currentModel;
+function init3DShowroom() {
+    const container = document.getElementById('3d-canvas-container');
+    showroomScene = new THREE.Scene();
+    showroomCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    showroomCamera.position.set(3, 2, 4);
+
+    showroomRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    showroomRenderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(showroomRenderer.domElement);
+
+    showroomScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8); dirLight.position.set(5, 10, 7); showroomScene.add(dirLight);
+
+    showroomControls = new THREE.OrbitControls(showroomCamera, showroomRenderer.domElement);
+    showroomControls.enableDamping = true; showroomControls.autoRotate = false;
+    animate3D();
 }
+
+function animate3D() { requestAnimationFrame(animate3D); if(showroomControls) showroomControls.update(); showroomRenderer.render(showroomScene, showroomCamera); }
+
+function open3DShowroom(url) {
+    document.getElementById('showroom-modal').classList.remove('hidden');
+    document.getElementById('3d-loader').classList.remove('hidden');
+    if (!showroomRenderer) init3DShowroom();
+    if (currentModel) showroomScene.remove(currentModel);
+
+    new THREE.GLTFLoader().load(url, (gltf) => {
+        currentModel = gltf.scene; currentModel.position.set(0, -1, 0); showroomScene.add(currentModel);
+        document.getElementById('3d-loader').classList.add('hidden');
+    });
+}
+function close3DShowroom() { document.getElementById('showroom-modal').classList.add('hidden'); }
+
+function toggleFAQ(element) { element.classList.toggle('active'); }
